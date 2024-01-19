@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">InvitationMaker</string>
+    <string name="templates">Templates</string>
+    <string name="backgrounds">Backgrounds</string>
+    <string name="my_creation">My Creations</string>
+    <string name="search">search</string>
+    <string name="premium_toolbar">Premium Toolbar</string>
+    <string name="rate_us">Rate Us</string>
+    <string name="upgrade_to_pro">Upgrade To Pro</string>
+    <string name="help">Help</string>
+    <string name="favorites">Favorites</string>
+    <string name="greetings">Greetings Card</string>
+    <string name="invitation">Invitation</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

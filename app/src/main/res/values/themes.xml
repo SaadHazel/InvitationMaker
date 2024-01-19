@@ -1,0 +1,35 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.InvitationMaker" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.InvitationMaker" parent="Base.Theme.InvitationMaker" />
+
+
+    <style name="BottomNavigationViewStyle">
+        <!-- Customize the background color for the whole BottomNavigationView -->
+        <item name="android:background">@color/white</item>
+        <!-- Customize the color of the selected item -->
+<!--        <item name="itemBackground">@color/black</item>-->
+        <!-- Customize the text color of the selected item -->
+        <item name="android:textColor">@color/random</item>
+        <!-- Customize the text color of the unselected items -->
+        <!--<item name="android:iconTint">@color/random</item>
+        <item name="android:itemTextAppearanceInactive">@style/BottomNavigationTextInactive</item>
+        <item name="android:itemTextAppearanceActive">@style/BottomNavigationTextActive</item>-->
+    </style>
+
+    <style name="BottomNavigationTextInactive">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="BottomNavigationTextActive">
+        <item name="android:textColor">@color/random</item>
+    </style>
+
+    <style name="App.Custom.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/active_indicator_bg</item>
+    </style>
+</resources>
