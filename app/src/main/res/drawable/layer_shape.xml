@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#80393939" /> <!-- Set alpha value to a level between 00 and FF -->
+    <corners
+        android:topRightRadius="8dp"
+        android:bottomRightRadius="8dp" />
+</shape>

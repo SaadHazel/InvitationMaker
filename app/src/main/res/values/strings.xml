@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">InvitationMaker</string>
+    <string name="app_name">Invitation\nMaker</string>
     <string name="templates">Templates</string>
     <string name="backgrounds">Backgrounds</string>
     <string name="my_creation">My Creations</string>
@@ -11,6 +11,13 @@
     <string name="favorites">Favorites</string>
     <string name="greetings">Greetings Card</string>
     <string name="invitation">Invitation</string>
+    <string name="birthday">Birthday</string>
+    <string name="wedding">Wedding</string>
+    <string name="eidParty">Eid Party</string>
+    <string name="movieNight">Movie Night</string>
+    <string name="babyShower">Baby Shower</string>
+    <string name="ramadan">Ramadan</string>
+
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

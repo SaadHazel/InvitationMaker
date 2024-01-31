@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.saad.invitationmaker.features.home.MainFragment"
+        android:label="MainFragment">
+        <action
+            android:id="@+id/to_categoriesFragment"
+            app:destination="@id/categoriesFragment">
+            <argument
+                android:name="category"
+                android:defaultValue="wedding"
+                app:argType="string" />
+            <argument
+                android:name="position"
+                app:argType="integer"
+                android:defaultValue="0" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/backgroundFragment"
+        android:name="com.saad.invitationmaker.features.BackgroundFragment"
+        android:label="BackgroundFragment" />
+    <fragment
+        android:id="@+id/myCreationFragment"
+        android:name="com.saad.invitationmaker.features.myCreation.MyCreationFragment"
+        android:label="MyCreationFragment" />
+    <fragment
+        android:id="@+id/categoriesFragment"
+        android:name="com.saad.invitationmaker.features.categories.CategoriesFragment"
+        android:label="CategoriesFragment" />
+    <fragment
+        android:id="@+id/invitationsFragment"
+        android:name="com.saad.invitationmaker.features.home.invitation.InvitationsFragment"
+        android:label="InvitationsFragment">
+
+    </fragment>
+    <fragment
+        android:id="@+id/showCategoriesFragment"
+        android:name="com.saad.invitationmaker.features.categories.showCategory.ShowCategoriesFragment"
+        android:label="ShowCategoriesFragment" />
+</navigation>

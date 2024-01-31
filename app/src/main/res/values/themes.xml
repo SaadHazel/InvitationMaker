@@ -1,8 +1,9 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.InvitationMaker" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="fontFamily">@font/roboto_regular</item>
     </style>
 
     <style name="Theme.InvitationMaker" parent="Base.Theme.InvitationMaker" />
@@ -12,7 +13,7 @@
         <!-- Customize the background color for the whole BottomNavigationView -->
         <item name="android:background">@color/white</item>
         <!-- Customize the color of the selected item -->
-<!--        <item name="itemBackground">@color/black</item>-->
+        <!--        <item name="itemBackground">@color/black</item>-->
         <!-- Customize the text color of the selected item -->
         <item name="android:textColor">@color/random</item>
         <!-- Customize the text color of the unselected items -->

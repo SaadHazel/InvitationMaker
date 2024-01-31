@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/item_templates"
+        android:id="@+id/mainFragment"
         android:enabled="true"
         android:icon="@drawable/baseline_line_weight_24"
         android:title="@string/templates"/>
     <item
-        android:id="@+id/item_backgrounds"
+        android:id="@+id/backgroundFragment"
         android:enabled="true"
         android:icon="@drawable/baseline_flip_to_back_24"
         android:title="@string/backgrounds"/>
     <item
-        android:id="@+id/item_my_creation"
+        android:id="@+id/myCreationFragment"
         android:enabled="true"
         android:icon="@drawable/baseline_folder_special_24"
         android:title="@string/my_creation"/>
