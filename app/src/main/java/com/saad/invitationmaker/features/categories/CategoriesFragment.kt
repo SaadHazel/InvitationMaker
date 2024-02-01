@@ -12,17 +12,18 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.saad.invitationmaker.R
+import com.saad.invitationmaker.app.models.TabData
 import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.app.utils.constants.Constants
 import com.saad.invitationmaker.databinding.FragmentCategoriesBinding
 import com.saad.invitationmaker.features.categories.adapters.CategoriesAdapter
 import com.saad.invitationmaker.features.home.models.GradientColor
-import com.saad.invitationmaker.features.home.models.TabData
 
 
 class CategoriesFragment : Fragment() {
@@ -53,56 +54,20 @@ class CategoriesFragment : Fragment() {
         tabDataList = listOf(
             TabData(
                 position = 0,
-                getString(R.string.wedding), R.drawable.wedding_couple,
-                drawableRes = R.drawable.tab_item_background_pink,
+                "wedding",
+                R.drawable.wedding_couple,
+                drawableRes = activity?.let {
+                    ContextCompat.getDrawable(
+                        it,
+                        R.drawable.tab_item_background_pink
+                    )
+                },
                 GradientColor(
                     startColor = Color.parseColor("#F76093"),
                     endColor = Color.parseColor("#F8B3CB")
                 )
-            ),
-            TabData(
-                position = 1,
-                getString(R.string.birthday), R.drawable.birthday_cake,
-                drawableRes = R.drawable.tab_item_background_light_blue,
-                GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
-            TabData(
-                position = 2,
-                getString(R.string.ramadan), R.drawable.birthday_cake,
-                drawableRes = R.drawable.tab_item_background_pink, GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
-                )
-            ),
-            TabData(
-                position = 3,
-                getString(R.string.eidParty), R.drawable.birthday_cake,
-                drawableRes = R.drawable.tab_item_background_light_blue, GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
-            TabData(
-                position = 4,
-                getString(R.string.movieNight), R.drawable.birthday_cake,
-                drawableRes = R.drawable.tab_item_background_pink, GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
-                )
-            ),
-            TabData(
-                position = 5,
-                getString(R.string.babyShower), R.drawable.birthday_cake,
-                drawableRes = R.drawable.tab_item_background_light_blue, GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
+            )
         )
-
         binding.viewPager.adapter = viewPagerAdapter
 
         goBack()
@@ -110,7 +75,7 @@ class CategoriesFragment : Fragment() {
         for (tabData in tabDataList) {
             val customTab = LayoutInflater.from(requireContext())
                 .inflate(R.layout.custom_tab_item, null) as ConstraintLayout
-            customTab.setBackgroundResource(tabData.drawableRes)
+//            customTab.setBackgroundResource(tabData.drawableRes)
             val tabTextView = customTab.findViewById<TextView>(R.id.text1)
             tabTextView.text = tabData.text
 

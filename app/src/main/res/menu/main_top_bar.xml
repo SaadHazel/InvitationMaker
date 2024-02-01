@@ -14,5 +14,5 @@
         android:id="@+id/premium_icon"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/premium_toolbar"/>
+        android:icon="@drawable/pro"/>
 </menu>

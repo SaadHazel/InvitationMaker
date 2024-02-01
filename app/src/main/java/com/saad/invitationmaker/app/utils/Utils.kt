@@ -102,6 +102,60 @@ object Utils {
             )
         )
     )
+//    val horizontalCategoryList = listOf(
+//        TabData(
+//            position = 0,
+//            "wedding",
+//            R.drawable.wedding_couple,
+//            drawableRes = ContextCompat.getDrawable(R.drawable.tab_item_background_pink),
+//            GradientColor(
+//                startColor = Color.parseColor("#F76093"),
+//                endColor = Color.parseColor("#F8B3CB")
+//            )
+//        ),
+//        TabData(
+//            position = 1,
+//            "Birthday", R.drawable.birthday_cake,
+//            drawableRes = R.drawable.tab_item_background_light_blue,
+//            GradientColor(
+//                startColor = Color.parseColor("#5CC5E4"),
+//                endColor = Color.parseColor("#C3D9F4")
+//            )
+//        ),
+//        TabData(
+//            position = 2,
+//            "Ramadan", R.drawable.birthday_cake,
+//            drawableRes = R.drawable.tab_item_background_pink, GradientColor(
+//                startColor = Color.parseColor("#F76093"),
+//                endColor = Color.parseColor("#F8B3CB")
+//            )
+//        ),
+//        TabData(
+//            position = 3,
+//            "Birthday", R.drawable.birthday_cake,
+//            drawableRes = R.drawable.tab_item_background_light_blue, GradientColor(
+//                startColor = Color.parseColor("#5CC5E4"),
+//                endColor = Color.parseColor("#C3D9F4")
+//            )
+//        ),
+//        TabData(
+//            position = 4,
+//            "Movie Night", R.drawable.birthday_cake,
+//            drawableRes = R.drawable.tab_item_background_pink, GradientColor(
+//                startColor = Color.parseColor("#F76093"),
+//                endColor = Color.parseColor("#F8B3CB")
+//            )
+//        ),
+//        TabData(
+//            position = 5,
+//            "Baby Shower", R.drawable.birthday_cake,
+//            drawableRes = R.drawable.tab_item_background_light_blue, GradientColor(
+//                startColor = Color.parseColor("#5CC5E4"),
+//                endColor = Color.parseColor("#C3D9F4")
+//            )
+//        ),
+//    )
+
 
     fun log(text: String) {
         Log.d("MyLogs", text)

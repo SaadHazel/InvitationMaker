@@ -24,6 +24,7 @@ class MainFragment : Fragment() {
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
     private lateinit var tabDataList: List<TabDataMain>
+
 //    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreateView(
@@ -40,21 +41,9 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tabLayout = binding.tabLayout
-        viewPager = binding.viewPager
 
-        viewPagerAdapter = MainPageAdapter(requireActivity()) { category, position ->
-            navigate(
-                R.id.nav_host_fragment,
-                MainFragmentDirections.toCategoriesFragment(
-                    category = category,
-                    position = position
-                )
-            )
 
-        }
-
-        binding.viewPager.adapter = viewPagerAdapter
+        init()
 
         for (tabData in tabDataList) {
             val customTab = LayoutInflater.from(requireContext())
@@ -89,6 +78,22 @@ class MainFragment : Fragment() {
                 tabLayout.selectTab(tabLayout.getTabAt(position))
             }
         })
+    }
+
+    private fun init() {
+        tabLayout = binding.tabLayout
+        viewPager = binding.viewPager
+        viewPager.isUserInputEnabled = false
+        viewPagerAdapter = MainPageAdapter(requireActivity()) { category, position ->
+            navigate(
+                R.id.nav_host_fragment,
+                MainFragmentDirections.toCategoriesFragment(
+                    category = category,
+                    position = position
+                )
+            )
+        }
+        viewPager.adapter = viewPagerAdapter
     }
 
     private fun updateTabAppearance(tab: TabLayout.Tab, isSelected: Boolean) {
