@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.saad.invitationmaker.R
-import com.saad.invitationmaker.core.extensions.navigate
 import com.saad.invitationmaker.databinding.FragmentMainBinding
 import com.saad.invitationmaker.features.home.adapters.MainPageAdapter
 import com.saad.invitationmaker.features.home.models.TabDataMain
@@ -42,7 +41,6 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         init()
 
         for (tabData in tabDataList) {
@@ -59,7 +57,6 @@ class MainFragment : Fragment() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (tab != null) {
                     viewPager.currentItem = tab.position
-                    updateTabAppearance(tab, true)
                 }
             }
 
@@ -85,13 +82,10 @@ class MainFragment : Fragment() {
         viewPager = binding.viewPager
         viewPager.isUserInputEnabled = false
         viewPagerAdapter = MainPageAdapter(requireActivity()) { category, position ->
-            navigate(
-                R.id.nav_host_fragment,
-                MainFragmentDirections.toCategoriesFragment(
-                    category = category,
-                    position = position
-                )
-            )
+//            navigate(
+//                R.id.nav_host_fragment,
+//                MainFragmentDirections.toEditorFragment()
+//            )
         }
         viewPager.adapter = viewPagerAdapter
     }

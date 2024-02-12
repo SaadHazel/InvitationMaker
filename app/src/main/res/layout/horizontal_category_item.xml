@@ -8,21 +8,16 @@
             name="data"
             type="com.saad.invitationmaker.app.models.TabData" />
 
-        <variable
-            name="itemClick"
-            type="com.saad.invitationmaker.features.home.callbacks.HorizontalCategoryItemClick" />
     </data>
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/main_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:background="@{data.drawableRes}"
         android:orientation="horizontal"
         android:layout_marginHorizontal="6dp"
         android:paddingVertical="1dp"
-        android:onClick="@{()->itemClick.itemClick(data)}"
         android:paddingHorizontal="1dp">
 
         <View

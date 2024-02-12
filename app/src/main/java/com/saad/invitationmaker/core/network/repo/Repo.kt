@@ -2,6 +2,7 @@ package com.saad.invitationmaker.core.network.repo
 
 import androidx.lifecycle.LiveData
 import com.saad.invitationmaker.core.network.models.Hit
+import com.saad.invitationmaker.features.editor.models.stickers.Data
 
 interface Repo {
 
@@ -9,6 +10,13 @@ interface Repo {
     val designs: LiveData<List<Hit>>
         get() = designsLiveData
 
-    suspend fun networkCheck(category: String)
-    suspend fun doNetworkCall(category: String)
+
+    val stickerLiveData: LiveData<List<Data>?>
+    val stickers: LiveData<List<Data>?>
+        get() = stickerLiveData
+
+    suspend fun checkNetworkAvailability(category: String)
+    suspend fun getPixaBayDesigns(category: String)
+
+    suspend fun getSticker(term: String)
 }

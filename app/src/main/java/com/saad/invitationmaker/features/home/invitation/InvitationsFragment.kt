@@ -1,5 +1,7 @@
 package com.saad.invitationmaker.features.home.invitation
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -14,9 +16,11 @@ import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.models.TabData
 import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.databinding.FragmentInvitationsBinding
+import com.saad.invitationmaker.features.editor.EditorActivity
 import com.saad.invitationmaker.features.home.adapters.HorizontalCategoryAdapter
 import com.saad.invitationmaker.features.home.callbacks.HorizontalCategoryItemClick
 import com.saad.invitationmaker.features.home.models.GradientColor
+
 
 class InvitationsFragment(private val onItemClick: (String, Int) -> Unit) : Fragment() {
     private lateinit var binding: FragmentInvitationsBinding
@@ -139,9 +143,16 @@ class InvitationsFragment(private val onItemClick: (String, Int) -> Unit) : Frag
             horizontalCategoryList,
             object : HorizontalCategoryItemClick {
                 override fun itemClick(text: TabData) {
+
+                    //Callback to mainFragment
+//                    onItemClick(text.text, text.position)
+
+                    val i = Intent(activity, EditorActivity::class.java)
+                    startActivity(i)
+                    (activity as Activity?)!!.overridePendingTransition(0, 0)
                     Utils.log("SelectedCategory: ${text.text}")
                 }
-            })
+            }) {}
 
         horizontalRecyclerView.adapter = horizontalCategoryAdapter
     }

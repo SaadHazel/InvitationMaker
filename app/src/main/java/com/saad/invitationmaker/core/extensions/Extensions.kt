@@ -2,6 +2,9 @@ package com.saad.invitationmaker.core.extensions
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -14,6 +17,15 @@ fun View.gone() {
 
 fun View.invisible() {
     this.visibility = View.INVISIBLE
+}
+
+fun View.vibratePhone() {
+    val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    if (Build.VERSION.SDK_INT >= 26) {
+        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        vibrator.vibrate(200)
+    }
 }
 
 //SnackBar

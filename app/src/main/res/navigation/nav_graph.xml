@@ -36,9 +36,7 @@
     <fragment
         android:id="@+id/invitationsFragment"
         android:name="com.saad.invitationmaker.features.home.invitation.InvitationsFragment"
-        android:label="InvitationsFragment">
-
-    </fragment>
+        android:label="InvitationsFragment" />
     <fragment
         android:id="@+id/showCategoriesFragment"
         android:name="com.saad.invitationmaker.features.categories.showCategory.ShowCategoriesFragment"

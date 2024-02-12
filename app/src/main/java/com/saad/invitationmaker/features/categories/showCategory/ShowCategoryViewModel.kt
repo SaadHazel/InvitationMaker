@@ -14,13 +14,13 @@ import javax.inject.Inject
 class ShowCategoryViewModel @Inject constructor(
     private val repo: Repo,
 ) : ViewModel() {
-    
+
     val designs: LiveData<List<Hit>>
         get() = repo.designs
 
     fun getDesigns(category: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.networkCheck(category)
+            repo.checkNetworkAvailability(category)
         }
     }
 }

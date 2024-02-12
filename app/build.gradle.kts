@@ -22,10 +22,16 @@ android {
 
     buildTypes {
         debug {
+            isDebuggable = true
             buildConfigField(
                 "String",
                 "API_KEY",
                 "\"" + project.findProperty("API_KEY") + "\""
+            )
+            buildConfigField(
+                "String",
+                "STICKERS_API_KEY",
+                "\"" + project.findProperty("STICKERS_API_KEY") + "\""
             )
         }
         release {

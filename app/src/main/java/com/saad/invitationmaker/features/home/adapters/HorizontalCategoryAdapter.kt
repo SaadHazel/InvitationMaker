@@ -1,18 +1,19 @@
 package com.saad.invitationmaker.features.home.adapters
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saad.invitationmaker.app.models.TabData
-import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.databinding.HorizontalCategoryItemBinding
 import com.saad.invitationmaker.features.home.callbacks.HorizontalCategoryItemClick
 
 class HorizontalCategoryAdapter(
     private val itemList: List<TabData>,
     private val itemClickListener: HorizontalCategoryItemClick,
+    private val getPosition: (position: Int) -> Unit,
 ) : RecyclerView.Adapter<HorizontalCategoryAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -23,6 +24,7 @@ class HorizontalCategoryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = itemList[position]
+        getPosition(item.position)
         holder.bind(item, itemClickListener)
     }
 
@@ -35,15 +37,16 @@ class HorizontalCategoryAdapter(
 
         fun bind(item: TabData, itemClickListener: HorizontalCategoryItemClick) {
             binding.data = item
-            binding.itemClick = itemClickListener
+            itemView.setOnClickListener {
+                itemClickListener.itemClick(item)
+                binding.whiteView.visibility = View.INVISIBLE
+                binding.text1.setTextColor(Color.WHITE)
+                binding.text1.setTypeface(null, Typeface.BOLD)
+
+            }
             binding.whiteView.visibility = View.VISIBLE
             binding.text1.setTextColor(Color.BLACK)
-
-            itemView.setOnClickListener {
-                Utils.log("Clicked on item View")
-                binding.whiteView.visibility = View.GONE
-                binding.text1.setTextColor(Color.WHITE)
-            }
+            binding.text1.setTypeface(null, Typeface.NORMAL)
 
             // Executing binding immediately to refresh UI
             binding.executePendingBindings()

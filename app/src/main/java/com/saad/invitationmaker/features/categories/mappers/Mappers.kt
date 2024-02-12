@@ -7,3 +7,4 @@ fun List<Hit>.toMyData(): BackgroundDesigns {
     val images = this.map { it.largeImageURL }
     return BackgroundDesigns(images)
 }
+
