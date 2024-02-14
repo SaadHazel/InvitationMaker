@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageButton
+        android:id="@+id/action_bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/transparent"
+        android:layout_marginTop="16dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/bold_icon"
+        app:layout_constraintEnd_toStartOf="@+id/action_underline"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/action_underline"
+        android:layout_width="25dp"
+        android:layout_height="30dp"
+        android:backgroundTint="@android:color/transparent"
+        android:src="@drawable/underline_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/action_bold"
+        app:layout_constraintEnd_toStartOf="@+id/action_italic"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_bold"
+        app:layout_constraintTop_toTopOf="@+id/action_bold" />
+
+    <ImageButton
+        android:id="@+id/action_italic"
+        android:layout_width="25dp"
+        android:layout_height="30dp"
+        android:backgroundTint="@android:color/transparent"
+
+        android:src="@drawable/italic_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/action_underline"
+        app:layout_constraintEnd_toStartOf="@+id/action_upper_case"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_underline"
+        app:layout_constraintTop_toTopOf="@+id/action_underline" />
+
+    <ImageButton
+        android:id="@+id/action_upper_case"
+        android:layout_width="50dp"
+        android:layout_height="30dp"
+        android:backgroundTint="@android:color/transparent"
+        android:src="@drawable/uppercase_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/action_italic"
+        app:layout_constraintEnd_toStartOf="@+id/action_lower_case"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_italic"
+        app:layout_constraintTop_toTopOf="@+id/action_italic" />
+
+    <ImageButton
+        android:id="@+id/action_lower_case"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:backgroundTint="@android:color/transparent"
+        android:src="@drawable/lowercase_icon"
+
+        app:layout_constraintBottom_toBottomOf="@+id/action_upper_case"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_upper_case"
+        app:layout_constraintTop_toTopOf="@+id/action_upper_case" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/perspectiveTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Perspective X"
+        android:textColor="@color/grey"
+        app:layout_constraintEnd_toStartOf="@+id/seekBarX"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/seekBarX"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:thumbColor="@color/random"
+        app:trackColorActive="@color/random"
+        app:trackHeight="2dp"
+        app:labelBehavior="gone"
+        android:value="0"
+        android:valueFrom="-360"
+        android:valueTo="360"
+        app:layout_constraintBottom_toBottomOf="@+id/perspectiveTv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/perspectiveTv"
+        app:layout_constraintTop_toTopOf="@+id/perspectiveTv" />
+
+    <TextView
+        android:id="@+id/perspectiveY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Perspective Y"
+        android:textColor="@color/grey"
+        app:layout_constraintEnd_toStartOf="@+id/seekBarY"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/perspectiveTv" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/seekBarY"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:thumbColor="@color/random"
+        app:trackColorActive="@color/random"
+        app:trackHeight="2dp"
+        android:value="0"
+        android:valueFrom="-360"
+        android:valueTo="360"
+
+        app:labelBehavior="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/perspectiveY"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/perspectiveY"
+        app:layout_constraintTop_toTopOf="@+id/perspectiveY" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

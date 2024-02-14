@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/action_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_corner"
+        android:padding="12dp"
+        android:text="Edit Text"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/guideline9"
+        app:layout_constraintEnd_toEndOf="@+id/action_copy"
+        app:layout_constraintStart_toStartOf="@+id/action_delete"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/action_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/up_arrow_icon"
+        android:backgroundTint="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@+id/action_down"
+        app:layout_constraintEnd_toEndOf="@+id/action_down"
+        app:layout_constraintStart_toStartOf="@+id/action_down"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/action_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_delete_control"
+        android:backgroundTint="@android:color/transparent"
+
+        app:layout_constraintEnd_toStartOf="@+id/action_copy"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline9" />
+
+    <ImageButton
+        android:id="@+id/action_copy"
+        android:backgroundTint="@android:color/transparent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:tint="@color/daynight_text_Color"
+        android:src="@drawable/abc_ic_menu_copy_mtrl_am_alpha"
+        app:layout_constraintBottom_toBottomOf="@+id/action_delete"
+        app:layout_constraintEnd_toStartOf="@+id/action_flip_horizontally"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_delete"
+        app:layout_constraintTop_toTopOf="@+id/action_delete" />
+
+    <ImageButton
+        android:id="@+id/action_flip_horizontally"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/transparent"
+
+        android:src="@drawable/ic_vertical_flip_control"
+        app:layout_constraintBottom_toBottomOf="@+id/action_copy"
+        app:layout_constraintEnd_toStartOf="@+id/action_flip_vertically"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_copy"
+        app:layout_constraintTop_toTopOf="@+id/action_copy" />
+
+    <ImageButton
+        android:id="@+id/action_flip_vertically"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/transparent"
+
+        android:src="@drawable/ic_horizontal_flip_control"
+        app:layout_constraintBottom_toBottomOf="@+id/action_flip_horizontally"
+        app:layout_constraintEnd_toStartOf="@+id/action_left"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_flip_horizontally"
+        app:layout_constraintTop_toTopOf="@+id/action_flip_horizontally" />
+
+    <ImageButton
+        android:id="@+id/action_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/transparent"
+
+        android:src="@drawable/left_arrow_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/action_flip_vertically"
+        app:layout_constraintEnd_toStartOf="@+id/action_down"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_flip_vertically"
+        app:layout_constraintTop_toTopOf="@+id/action_flip_vertically" />
+
+    <ImageButton
+        android:id="@+id/action_down"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/transparent"
+
+        android:src="@drawable/down_arrow_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/action_left"
+        app:layout_constraintEnd_toStartOf="@+id/action_right"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_left"
+        app:layout_constraintTop_toTopOf="@+id/action_left" />
+
+    <ImageButton
+        android:id="@+id/action_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/right_arrow_icon"
+        android:backgroundTint="@android:color/transparent"
+
+        app:layout_constraintBottom_toBottomOf="@+id/action_down"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/action_down"
+        app:layout_constraintTop_toTopOf="@+id/action_down" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="45dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

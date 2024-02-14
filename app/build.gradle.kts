@@ -24,21 +24,16 @@ android {
         debug {
             isDebuggable = true
             buildConfigField(
-                "String",
-                "API_KEY",
-                "\"" + project.findProperty("API_KEY") + "\""
+                "String", "API_KEY", "\"" + project.findProperty("API_KEY") + "\""
             )
             buildConfigField(
-                "String",
-                "STICKERS_API_KEY",
-                "\"" + project.findProperty("STICKERS_API_KEY") + "\""
+                "String", "STICKERS_API_KEY", "\"" + project.findProperty("STICKERS_API_KEY") + "\""
             )
         }
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -51,6 +46,7 @@ android {
     }
     buildFeatures {
         //noinspection DataBindingWithoutKapt
+        viewBinding = true
         dataBinding = true
         buildConfig = true
     }

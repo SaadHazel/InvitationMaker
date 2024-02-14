@@ -6,6 +6,8 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewStub
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.saad.invitationmaker.R
@@ -17,6 +19,33 @@ fun View.gone() {
 
 fun View.invisible() {
     this.visibility = View.INVISIBLE
+}
+
+fun View.visible() {
+    this.visibility = View.VISIBLE
+}
+
+fun ViewStub.deflate(): ViewStub {
+    val viewParent = parent
+
+    if (viewParent != null && viewParent is ViewGroup) {
+        val viewStub = ViewStub(context).apply {
+            inflatedId = this@deflate.inflatedId
+            layoutParams = this@deflate.layoutParams
+        }
+        val index = viewParent.indexOfChild(this)
+
+        viewParent.removeView(this)
+        viewParent.addView(viewStub, index)
+        return viewStub
+    } else {
+        throw IllegalStateException("Inflated View has not a parent")
+    }
+}
+
+fun ViewStub.inflateAndGone() {
+    this.inflate()
+    this.gone()
 }
 
 fun View.vibratePhone() {

@@ -10,17 +10,27 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.setPadding
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.core.extensions.vibratePhone
+import com.saad.invitationmaker.features.editor.callbacks.UpdateTouchListenerCallback
 
 
-class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
+class DraggableTextView(
+    context: Context,
+    x: Float,
+    y: Float,
+    text: String,
+    val currentPosition: (x: Float, y: Float) -> Unit,
+    private val onItemClick: (Boolean) -> Unit,
+    val currentView: (view: View, isSelected: Boolean) -> Unit,
+    private val callback: UpdateTouchListenerCallback,
+
+    ) :
     AppCompatTextView(context) {
-
     init {
         // Set TextView properties
-        /*  layoutParams = ViewGroup.LayoutParams(
-              200,
-              200
-          )*/
+        layoutParams = ViewGroup.LayoutParams(
+            200,
+            200
+        )
         this.x = x
         this.y = y
         this.text = text
@@ -29,9 +39,7 @@ class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
         background = null
         setTextColor(Color.WHITE)
         setPadding(5)
-
     }
-
 
     fun enableDragAndDrop(
         topLeftIcon: View,
@@ -52,7 +60,7 @@ class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
 
                         resetBackgroundForAllViews(allParent)
                         setBackgroundResource(R.drawable.rounded_border_tv)
-
+                        currentView(view, true)
                         lastX = event.rawX
                         lastY = event.rawY
                         hideIcons(
@@ -66,6 +74,7 @@ class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
                     }
 
                     MotionEvent.ACTION_MOVE -> {
+                        onItemClick(true)
                         hideIcons(
                             topLeftIcon,
                             topRightIcon,
@@ -84,6 +93,8 @@ class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
                     }
 
                     MotionEvent.ACTION_UP -> {
+                        currentPosition(x, y)
+                        callback.onDrag(view)
                         attachTo(
                             this@DraggableTextView,
                             topLeftIcon,
@@ -178,7 +189,7 @@ class DraggableTextView(context: Context, x: Float, y: Float, text: String) :
 //        bottomCenterIcon.visibility = View.GONE
     }
 
-    private fun resetBackgroundForAllViews(viewGroup: ViewGroup) {
+    fun resetBackgroundForAllViews(viewGroup: ViewGroup) {
         for (index in 0 until viewGroup.childCount) {
             val child = viewGroup.getChildAt(index)
             resetBackground(child)

@@ -9,9 +9,18 @@ import com.bumptech.glide.Glide
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.core.extensions.vibratePhone
+import com.saad.invitationmaker.features.editor.callbacks.UpdateTouchListenerCallback
 
 
-class DraggableImageView(context: Context, x: Float, y: Float, url: String) :
+class DraggableImageView(
+    context: Context,
+    x: Float,
+    y: Float,
+    url: String,
+    private val onItemClick: (Boolean) -> Unit,
+    private val callback: UpdateTouchListenerCallback,
+    val currentView: (view: View, isSelected: Boolean) -> Unit,
+) :
     AppCompatImageView(context) {
 
 
@@ -45,6 +54,7 @@ class DraggableImageView(context: Context, x: Float, y: Float, url: String) :
                 val allParent = view.parent as? ViewGroup ?: return false
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
+                        currentView(view, true)
                         resetBackgroundForAllViews(allParent)
                         setBackgroundResource(R.drawable.rounded_border_tv)
                         hideIcons(
@@ -60,8 +70,8 @@ class DraggableImageView(context: Context, x: Float, y: Float, url: String) :
                     }
 
                     MotionEvent.ACTION_MOVE -> {
+                        onItemClick(true)
                         hideIcons(
-
                             topLeftIcon,
                             topRightIcon,
                             bottomRightIcon,
@@ -79,6 +89,7 @@ class DraggableImageView(context: Context, x: Float, y: Float, url: String) :
                     }
 
                     MotionEvent.ACTION_UP -> {
+                        callback.onDrag(view)
                         attachTo(
                             this@DraggableImageView,
                             topLeftIcon,

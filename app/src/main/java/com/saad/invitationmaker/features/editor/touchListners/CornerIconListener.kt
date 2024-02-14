@@ -20,7 +20,7 @@ class CornerIconListener(context: Context, iconSize: Int, @DrawableRes iconResou
 
     init {
         // Set ImageView properties
-        z = 2f
+        z = 200f
         setImageResource(iconResource)
         layoutParams = ViewGroup.LayoutParams(iconSize, iconSize)
     }

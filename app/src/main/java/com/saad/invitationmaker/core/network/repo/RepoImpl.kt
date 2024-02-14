@@ -55,7 +55,7 @@ class RepoImpl @Inject constructor(
                 page = 1,
                 limit = 20,
                 order = "latest",
-                term = "village",
+                term = "flowers",
                 contentType = "vector"
             )
             if (response.isSuccessful) {
