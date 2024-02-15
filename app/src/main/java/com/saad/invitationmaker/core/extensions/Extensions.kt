@@ -5,10 +5,15 @@ import android.graphics.Color
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewStub
+import android.widget.ImageView
+import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.snackbar.Snackbar
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.utils.constants.Constants
@@ -56,6 +61,27 @@ fun View.vibratePhone() {
         vibrator.vibrate(200)
     }
 }
+
+//fun View.cancelTransition() {
+//    transitionName = null
+//}
+
+fun ViewGroup.inflate(@LayoutRes layoutRes: Int): View =
+    LayoutInflater.from(context).inflate(layoutRes, this, false)
+
+fun ImageView.loadFromUrl(url: String) =
+    Glide.with(this.context.applicationContext)
+        .load(url)
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .into(this)
+
+
+/*fun ImageView.loadUrlAndPostponeEnterTransition(url: String, activity: FragmentActivity) {
+    val target: Target<Drawable> = ImageViewBaseTarget(this, activity)
+    Glide.with(context.applicationContext).load(url).into(target)
+}*/
+
+
 
 //SnackBar
 fun Context.showSnackBarMessage(view: View?, message: CharSequence) {

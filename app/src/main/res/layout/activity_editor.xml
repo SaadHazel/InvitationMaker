@@ -17,8 +17,8 @@
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_keyboard_backspace_24"
             app:layout_constraintBottom_toTopOf="@+id/guideline2"
@@ -32,8 +32,8 @@
             android:id="@+id/btn_layers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
             android:layout_marginStart="20dp"
+            android:background="@android:color/transparent"
             android:src="@drawable/baseline_layers_24"
             app:layout_constraintBottom_toBottomOf="@+id/btn_back"
             app:layout_constraintEnd_toStartOf="@+id/btn_undo"
@@ -88,9 +88,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_done_24"
-            android:layout_marginEnd="16dp"
 
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/guideline2"
@@ -131,10 +131,10 @@
             android:id="@+id/horizontal_recyclerView_main_options"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@color/light_grey"
             android:paddingHorizontal="6dp"
             android:paddingVertical="14dp"
             android:visibility="gone"
-            android:background="@color/light_grey"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -144,10 +144,10 @@
             android:id="@+id/recyclerView_selected_options"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@color/light_grey"
             android:paddingHorizontal="6dp"
             android:paddingVertical="14dp"
             android:visibility="gone"
-            android:background="@color/light_grey"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -155,102 +155,154 @@
 
         <ViewStub
             android:id="@+id/stub"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/controls_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/controls_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_align"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/align_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/align_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_d_rotate"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/d_rotate_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/d_rotate_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_rotate"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/rotate_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/rotate_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_spacer"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/spacer_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/spacer_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_opacity"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/opacity_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/opacity_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_style"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/style_layout_item"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/style_layout_item"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_size"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/size_layout_item"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/size_layout_item"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub_font"
-            android:inflatedId="@+id/subTree"
-            android:layout="@layout/fonts_layout_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/fonts_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+
+        <ViewStub
+            android:id="@+id/stub_color"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/color_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+
+        <TextView
+            android:id="@+id/tv_done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:text="Done"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="6dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/color_picker"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.skydoves.colorpickerview.ColorPickerView
+            android:id="@+id/color_picker"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:fitsSystemWindows="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/alphaSlideBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:palette="@drawable/color_picker"
+            app:selector="@drawable/ic_wheel" />
+
+        <com.skydoves.colorpickerview.sliders.AlphaSlideBar
+            android:id="@+id/alphaSlideBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            app:borderColor_AlphaSlideBar="@android:color/darker_gray"
+            app:borderSize_AlphaSlideBar="5"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="12dp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:selector_AlphaSlideBar="@drawable/colorpickerview_wheel" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline4"

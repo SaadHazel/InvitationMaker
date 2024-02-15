@@ -72,6 +72,10 @@ dependencies {
     ksp("com.google.dagger:dagger-compiler:2.50") // Dagger compiler
     ksp("com.google.dagger:hilt-compiler:2.50")   // Hilt compiler
 
+
+    //Color Picker
+    implementation("com.github.skydoves:colorpickerview:2.3.0")
+
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

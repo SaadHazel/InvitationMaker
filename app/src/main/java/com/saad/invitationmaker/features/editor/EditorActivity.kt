@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +34,7 @@ import com.saad.invitationmaker.core.extensions.inflateAndGone
 import com.saad.invitationmaker.core.extensions.visible
 import com.saad.invitationmaker.databinding.ActivityEditorBinding
 import com.saad.invitationmaker.databinding.AlignLayoutViewBinding
+import com.saad.invitationmaker.databinding.ColorLayoutViewBinding
 import com.saad.invitationmaker.databinding.ControlsLayoutViewBinding
 import com.saad.invitationmaker.databinding.DRotateLayoutViewBinding
 import com.saad.invitationmaker.databinding.FontsLayoutViewBinding
@@ -41,12 +43,14 @@ import com.saad.invitationmaker.databinding.RotateLayoutViewBinding
 import com.saad.invitationmaker.databinding.SizeLayoutItemBinding
 import com.saad.invitationmaker.databinding.SpacerLayoutViewBinding
 import com.saad.invitationmaker.databinding.StyleLayoutItemBinding
+import com.saad.invitationmaker.features.editor.adapters.ColorsAdapter
 import com.saad.invitationmaker.features.editor.adapters.FontsAdapter
 import com.saad.invitationmaker.features.editor.adapters.LayersAdapter
 import com.saad.invitationmaker.features.editor.adapters.MainOptionsAdapter
 import com.saad.invitationmaker.features.editor.bottomSheets.EditTextBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.NeonTextBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.StickerBottomSheet
+import com.saad.invitationmaker.features.editor.callbacks.ItemColorCallBack
 import com.saad.invitationmaker.features.editor.callbacks.ItemFontClickCallback
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperAdapter
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperCallback
@@ -62,6 +66,7 @@ import com.saad.invitationmaker.features.editor.touchListners.CornerIconListener
 import com.saad.invitationmaker.features.editor.touchListners.DraggableImageView
 import com.saad.invitationmaker.features.editor.touchListners.DraggableTextView
 import com.saad.invitationmaker.features.editor.utils.CreateViews
+import com.skydoves.colorpickerview.listeners.ColorListener
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -77,6 +82,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var styleLayoutView: StyleLayoutItemBinding? = null
     private var sizeLayoutView: SizeLayoutItemBinding? = null
     private var fontLayoutView: FontsLayoutViewBinding? = null
+    private var colorLayoutView: ColorLayoutViewBinding? = null
+
     private val viewModel: EditorViewModel by viewModels()
     private lateinit var editorContainer: ConstraintLayout
     private lateinit var mainOptionsRecyclerView: RecyclerView
@@ -88,6 +95,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private lateinit var bottomOptionsData: List<MainOptionsData>
     private lateinit var bottomSelectedOptionsData: List<MainOptionsData>
     private lateinit var fontsList: List<Fonts>
+    private lateinit var colorList: List<Int>
     private lateinit var draggableTextView: DraggableTextView
     private lateinit var draggableImageView: DraggableImageView
     private var cornerIconSize: Int = 0
@@ -108,6 +116,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var viewStubStyle: ViewStub? = null
     private var viewStubSize: ViewStub? = null
     private var viewStubFont: ViewStub? = null
+    private var viewStubColor: ViewStub? = null
 
     private var currentView: View? = null
     private var currentY: Float? = null
@@ -161,6 +170,10 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
         binding.stubFont.setOnInflateListener { _, inflated ->
             fontLayoutView = FontsLayoutViewBinding.bind(inflated)
+        }
+
+        binding.stubColor.setOnInflateListener { _, inflated ->
+            colorLayoutView = ColorLayoutViewBinding.bind(inflated)
         }
 
         init()
@@ -222,6 +235,9 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         viewStubFont = binding.stubFont.viewStub
         viewStubFont?.inflateAndGone()
 
+        viewStubColor = binding.stubColor.viewStub
+        viewStubColor?.inflateAndGone()
+
         createViews = CreateViews(this@EditorActivity)
         editorContainer = binding.editorLayout
         addSticker = StickerBottomSheet { stickerUrl ->
@@ -246,7 +262,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             MainOptionsData(R.drawable.center_selected, "Align"),
             MainOptionsData(R.drawable.font_s, "Fonts"),
             MainOptionsData(R.drawable.font_size_s, "Size"),
-            MainOptionsData(R.drawable.bottom_control_selected, "Color"),
+            MainOptionsData(R.drawable.bottom_color_selected, "Color"),
             MainOptionsData(R.drawable.active_text_style_icon, "Style"),
             MainOptionsData(R.drawable.active_shadow_icon, "Shadow"),
             MainOptionsData(R.drawable.active_opacity_icon, "Opacity"),
@@ -264,6 +280,33 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             Fonts("SixtyFour", fonts = R.font.sixtyfour_regular),
             Fonts("Ubuntu", fonts = R.font.ubuntu_regular),
             Fonts("WorkBench", fonts = R.font.workbench_regular),
+        )
+
+        colorList = listOf(
+            R.color.black,
+            R.color.random,
+            R.color.active_indicator_bg,
+            R.color.grey,
+            R.color.daynight_text_Color,
+            R.color.light_grey,
+            R.color.blue,
+            R.color.colorpink,
+            R.color.daynight_text_white,
+            R.color.daynight_layeritem,
+            R.color.colorAccent,
+            R.color.colorBlue,
+            R.color.black,
+            R.color.random,
+            R.color.active_indicator_bg,
+            R.color.grey,
+            R.color.daynight_text_Color,
+            R.color.light_grey,
+            R.color.blue,
+            R.color.colorpink,
+            R.color.daynight_text_white,
+            R.color.daynight_layeritem,
+            R.color.colorAccent,
+            R.color.colorBlue
         )
 
         views = listOf(
@@ -300,9 +343,9 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     callBackItems(text)
                 }
             })
+
         mainOptionsRecyclerView.adapter = mainOptionsAdapter
         selectedItemOptionsRecyclerView()
-
         setupRecyclerView()
         setupButtonLayers()
         undoRedoListener()
@@ -331,57 +374,117 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         when (text) {
             "Controls" -> {
                 Utils.log("Controls")
+                hideAllCorners()
                 viewStub?.let { hideAllStubs(it.id) }
                 controlLayoutLogic()
             }
 
             "Align" -> {
                 Utils.log("Align")
+                hideAllCorners()
                 viewStubAlign?.let { hideAllStubs(it.id) }
                 alignLayoutLogic()
             }
 
             "Fonts" -> {
                 Utils.log("Fonts")
+                hideAllCorners()
                 viewStubFont?.let { hideAllStubs(it.id) }
                 fontLayoutLogic()
             }
 
+            "Color" -> {
+                Utils.log("Color")
+                hideAllCorners()
+                viewStubColor?.let { hideAllStubs(it.id) }
+                colorLayoutLogic()
+            }
+
             "3D Rotate" -> {
                 Utils.log("3D Rotate")
+                hideAllCorners()
                 viewStubDRotate?.let { hideAllStubs(it.id) }
                 dRotateLogic()
             }
 
             "Rotation" -> {
                 Utils.log("Rotate")
+                hideAllCorners()
                 viewStubRotate?.id?.let { hideAllStubs(it) }
                 rotateLogic()
             }
 
             "Spacing" -> {
                 Utils.log("Spacing")
+                hideAllCorners()
                 viewStubSpacer?.id?.let { hideAllStubs(it) }
                 spacerLogic()
             }
 
             "Opacity" -> {
                 Utils.log("Opacity")
+                hideAllCorners()
                 viewStubOpacity?.id?.let { hideAllStubs(it) }
                 opacityLogic()
             }
 
             "Style" -> {
                 Utils.log("Style")
+                hideAllCorners()
                 viewStubStyle?.id?.let { hideAllStubs(it) }
                 styleLogic()
             }
 
             "Size" -> {
                 Utils.log("Size")
+                hideAllCorners()
                 viewStubSize?.id?.let { hideAllStubs(it) }
                 sizeLogic()
             }
+        }
+    }
+
+    private fun colorLayoutLogic() = colorLayoutView?.apply {
+        val recyclerViewColor = colorRecyclerView
+        binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
+        binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
+            (currentView as TextView).setTextColor(color)
+        })
+        recyclerViewColor.layoutManager = GridLayoutManager(
+            this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
+        )
+        recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
+            override fun onItemColorClick(color: Int) {
+                Utils.log("Colors: $color")
+                (currentView as TextView).setTextColor(resources.getColor(color, null))
+            }
+
+            override fun onItemColorPickerClick(toggle: Boolean) {
+                Utils.log("toggle: $toggle")
+                if (toggle) {
+                    binding.colorPicker.visible()
+                    binding.alphaSlideBar.visible()
+                    binding.tvDone.visible()
+                    recyclerViewColor.gone()
+                    binding.recyclerViewSelectedOptions.gone()
+                    binding.stubColor.viewStub?.gone()
+                } else {
+                    binding.colorPicker.gone()
+                    binding.alphaSlideBar.gone()
+
+                    binding.recyclerViewSelectedOptions.visible()
+                    binding.stubColor.viewStub?.visible()
+                }
+            }
+        })
+        
+        binding.tvDone.setOnClickListener {
+            recyclerViewColor.visible()
+            binding.colorPicker.gone()
+            binding.tvDone.gone()
+            binding.alphaSlideBar.gone()
+            binding.recyclerViewSelectedOptions.visible()
+            binding.stubColor.viewStub?.visible()
         }
     }
 
@@ -635,7 +738,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewStubOpacity,
             viewStubStyle,
             viewStubSize,
-            viewStubFont
+            viewStubFont,
+            viewStubColor
         )
         allStubs.forEach { currentStub ->
             if (currentStub?.id != stubId) {
