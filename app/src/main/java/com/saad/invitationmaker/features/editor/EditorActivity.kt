@@ -40,6 +40,8 @@ import com.saad.invitationmaker.databinding.DRotateLayoutViewBinding
 import com.saad.invitationmaker.databinding.FontsLayoutViewBinding
 import com.saad.invitationmaker.databinding.OpacityLayoutViewBinding
 import com.saad.invitationmaker.databinding.RotateLayoutViewBinding
+import com.saad.invitationmaker.databinding.ShadowAngleLayoutViewBinding
+import com.saad.invitationmaker.databinding.ShadowSingleSliderViewBinding
 import com.saad.invitationmaker.databinding.SizeLayoutItemBinding
 import com.saad.invitationmaker.databinding.SpacerLayoutViewBinding
 import com.saad.invitationmaker.databinding.StyleLayoutItemBinding
@@ -47,11 +49,13 @@ import com.saad.invitationmaker.features.editor.adapters.ColorsAdapter
 import com.saad.invitationmaker.features.editor.adapters.FontsAdapter
 import com.saad.invitationmaker.features.editor.adapters.LayersAdapter
 import com.saad.invitationmaker.features.editor.adapters.MainOptionsAdapter
+import com.saad.invitationmaker.features.editor.adapters.ShadowAdapter
 import com.saad.invitationmaker.features.editor.bottomSheets.EditTextBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.NeonTextBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.StickerBottomSheet
 import com.saad.invitationmaker.features.editor.callbacks.ItemColorCallBack
 import com.saad.invitationmaker.features.editor.callbacks.ItemFontClickCallback
+import com.saad.invitationmaker.features.editor.callbacks.ItemShadowClickCallback
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperAdapter
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperCallback
 import com.saad.invitationmaker.features.editor.callbacks.MainEditorOptionsItemClick
@@ -83,6 +87,9 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var sizeLayoutView: SizeLayoutItemBinding? = null
     private var fontLayoutView: FontsLayoutViewBinding? = null
     private var colorLayoutView: ColorLayoutViewBinding? = null
+    private var shadowAngleLayoutView: ShadowAngleLayoutViewBinding? = null
+    private var shadowSingleSliderLayoutView: ShadowSingleSliderViewBinding? = null
+
 
     private val viewModel: EditorViewModel by viewModels()
     private lateinit var editorContainer: ConstraintLayout
@@ -96,6 +103,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private lateinit var bottomSelectedOptionsData: List<MainOptionsData>
     private lateinit var fontsList: List<Fonts>
     private lateinit var colorList: List<Int>
+    private lateinit var shadowList: List<String>
     private lateinit var draggableTextView: DraggableTextView
     private lateinit var draggableImageView: DraggableImageView
     private var cornerIconSize: Int = 0
@@ -117,6 +125,16 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var viewStubSize: ViewStub? = null
     private var viewStubFont: ViewStub? = null
     private var viewStubColor: ViewStub? = null
+    private var viewStubShadowAngle: ViewStub? = null
+    private var viewStubShadowSingleSlider: ViewStub? = null
+    private var viewStubColorShadow: ViewStub? = null
+
+
+    //shadow vals
+    private var angleX: Float = 0f
+    private var angleY: Float = 0f
+    private var blurVal: Float = 0f
+    private var shadowColor: Int = Color.BLACK
 
     private var currentView: View? = null
     private var currentY: Float? = null
@@ -176,6 +194,17 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             colorLayoutView = ColorLayoutViewBinding.bind(inflated)
         }
 
+        binding.stubShadowAngle.setOnInflateListener { _, inflated ->
+            shadowAngleLayoutView = ShadowAngleLayoutViewBinding.bind(inflated)
+        }
+
+        binding.stubShadowSingleSlider.setOnInflateListener { _, inflated ->
+            shadowSingleSliderLayoutView = ShadowSingleSliderViewBinding.bind(inflated)
+        }
+
+        binding.stubColorShadow.setOnInflateListener { _, inflated ->
+            colorLayoutView = ColorLayoutViewBinding.bind(inflated)
+        }
         init()
 
         viewModel.stickers.observe(this) { data ->
@@ -238,6 +267,15 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         viewStubColor = binding.stubColor.viewStub
         viewStubColor?.inflateAndGone()
 
+        viewStubShadowAngle = binding.stubShadowAngle.viewStub
+        viewStubShadowAngle?.inflateAndGone()
+
+        viewStubShadowSingleSlider = binding.stubShadowSingleSlider.viewStub
+        viewStubShadowSingleSlider?.inflateAndGone()
+
+        viewStubColorShadow = binding.stubColorShadow.viewStub
+        viewStubColorShadow?.inflateAndGone()
+
         createViews = CreateViews(this@EditorActivity)
         editorContainer = binding.editorLayout
         addSticker = StickerBottomSheet { stickerUrl ->
@@ -282,6 +320,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             Fonts("WorkBench", fonts = R.font.workbench_regular),
         )
 
+        shadowList = listOf(
+            "OFF",
+            "ANGLE",
+            "BLUR",
+            "COLOR",
+            "OPACITY"
+        )
         colorList = listOf(
             R.color.black,
             R.color.random,
@@ -386,6 +431,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 alignLayoutLogic()
             }
 
+            "Shadow" -> {
+                Utils.log("Shadow")
+                hideAllCorners()
+                hideAllStubs(0)
+                shadowLayoutLogic()
+            }
+
             "Fonts" -> {
                 Utils.log("Fonts")
                 hideAllCorners()
@@ -444,6 +496,185 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         }
     }
 
+    private fun shadowLayoutLogic() {
+        binding.shadowRecyclerView.visible()
+        val recyclerViewShadow = binding.shadowRecyclerView
+        recyclerViewShadow.layoutManager = LinearLayoutManager(
+            this@EditorActivity, LinearLayoutManager.HORIZONTAL, false
+        )
+        recyclerViewShadow.adapter = ShadowAdapter(
+            shadowList, object : ItemShadowClickCallback {
+                override fun onShadowClick(shadow: String) {
+                    when (shadow) {
+                        "OFF" -> {
+                            hideAllCornerWithoutShadowList()
+                            Utils.log("onShadowClick: OFF")
+                            hideShadowStubs(0)
+                        }
+
+                        "ANGLE" -> {
+                            hideAllCornerWithoutShadowList()
+                            Utils.log("onShadowClick: ANGLE")
+                            viewStubShadowAngle?.let { hideShadowStubs(it.id) }
+                            shadowAngleLogic()
+                        }
+
+                        "BLUR" -> {
+                            hideAllCornerWithoutShadowList()
+                            Utils.log("onShadowClick: BLUR")
+                            viewStubShadowSingleSlider?.let { hideShadowStubs(it.id) }
+                            shadowBlurLogic()
+
+                        }
+
+                        "COLOR" -> {
+                            hideAllCornerWithoutShadowList()
+                            Utils.log("onShadowClick: COLOR")
+                            viewStubColorShadow?.let { hideShadowStubs(it.id) }
+                            shadowColorLogic()
+                        }
+
+                        "OPACITY" -> {
+                            hideAllCornerWithoutShadowList()
+                            Utils.log("onShadowClick: OPACITY")
+
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    private fun shadowColorLogic() = colorLayoutView?.apply {
+        val recyclerViewColor = colorRecyclerView
+        binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
+        binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
+            (currentView as TextView).setTextColor(color) //change to shadow
+        })
+        recyclerViewColor.layoutManager = GridLayoutManager(
+            this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
+        )
+        recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
+            override fun onItemColorClick(color: Int) {
+                Utils.log("Colors: $color")
+                (currentView as TextView).setTextColor(
+                    resources.getColor(
+                        color,
+                        null
+                    )
+                ) // change to shadow
+            }
+
+            override fun onItemColorPickerClick(toggle: Boolean) {
+                Utils.log("toggle: $toggle")
+                if (toggle) {
+                    binding.colorPicker.visible()
+                    binding.alphaSlideBar.visible()
+                    binding.tvDone.visible()
+                    recyclerViewColor.gone()
+                    binding.shadowRecyclerView.gone()
+                    binding.recyclerViewSelectedOptions.gone()
+                    viewStubColorShadow?.gone()
+                } else {
+                    binding.colorPicker.gone()
+                    binding.alphaSlideBar.gone()
+                    binding.shadowRecyclerView.visible()
+                    binding.recyclerViewSelectedOptions.visible()
+                    viewStubColorShadow?.visible()
+                }
+            }
+        })
+
+        binding.tvDone.setOnClickListener {
+            colorRecyclerView.visible()
+            binding.colorPicker.gone()
+            binding.tvDone.gone()
+            binding.alphaSlideBar.gone()
+            binding.shadowRecyclerView.visible()
+            binding.recyclerViewSelectedOptions.visible()
+            binding.stubColor.viewStub?.visible()
+        }
+    }
+
+
+    private fun shadowBlurLogic() = shadowSingleSliderLayoutView?.apply {
+        seekBar.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCornerWithoutShadowList()
+                Utils.log("onStartTrackingTouch ${slider.value}")
+
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+                Utils.log("onStopTrackingTouch ${slider.value}")
+
+            }
+        })
+        seekBar.addOnChangeListener { slider, value, fromUser ->
+            // Responds to when slider's value is changed
+            (currentView as TextView).setShadowLayer(value, angleX, angleY, shadowColor);
+//            Utils.log("addOnChangeListener ${slider.value}")
+        }
+    }
+
+    private fun shadowAngleLogic() = shadowAngleLayoutView?.apply {
+
+        val color: Int = (currentView as TextView).currentTextColor
+        val hexColor = String.format("#%06X", 0xFFFFFF and color)
+        Utils.log("Color Hex : $hexColor")
+
+
+        seekBarX.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCornerWithoutShadowList()
+                Utils.log("onStartTrackingTouch ${slider.value}")
+
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+                Utils.log("onStopTrackingTouch ${slider.value}")
+
+            }
+        })
+        seekBarX.addOnChangeListener { slider, value, fromUser ->
+            // Responds to when slider's value is changed
+            angleX = value
+            (currentView as TextView).setShadowLayer(1.5f, angleX, angleY, shadowColor);
+//            Utils.log("addOnChangeListener ${slider.value}")
+        }
+
+        //Perspective Y
+        seekBarY.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCornerWithoutShadowList()
+
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+
+                Utils.log("onStopTrackingTouch ${slider.value}")
+
+            }
+        })
+        seekBarY.addOnChangeListener { slider, value, fromUser ->
+            angleY = value
+            // Responds to when slider's value is changed
+            (currentView as TextView).setShadowLayer(
+                1.5f,
+                angleX,
+                angleY,
+                shadowColor
+            );
+//            Utils.log("addOnChangeListener ${slider.value}")
+        }
+    }
+
     private fun colorLayoutLogic() = colorLayoutView?.apply {
         val recyclerViewColor = colorRecyclerView
         binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
@@ -477,7 +708,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 }
             }
         })
-        
+
         binding.tvDone.setOnClickListener {
             recyclerViewColor.visible()
             binding.colorPicker.gone()
@@ -499,7 +730,6 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     val typeface = ResourcesCompat.getFont(this@EditorActivity, text)
                     (currentView as TextView).typeface = typeface
                 }
-
             })
     }
 
@@ -662,12 +892,11 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
-
         })
         seekBarX.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
             currentView?.rotationY = value
-            Utils.log("addOnChangeListener ${slider.value}")
+//            Utils.log("addOnChangeListener ${slider.value}")
         }
 
         //Perspective Y
@@ -675,12 +904,15 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
+
+
                 Utils.log("onStartTrackingTouch ${slider.value}")
 
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
+
                 Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
@@ -689,7 +921,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         seekBarY.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
             currentView?.rotationX = value
-            Utils.log("addOnChangeListener ${slider.value}")
+//            Utils.log("addOnChangeListener ${slider.value}")
         }
     }
 
@@ -726,7 +958,18 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             bottomRightCornerIcon,
             bottomLeftCornerIcon,
         )
+        binding.shadowRecyclerView.gone()
     }
+
+    private fun hideAllCornerWithoutShadowList() {
+        draggableTextView.hideIcons(
+            topLeftCornerIcon,
+            topRightCornerIcon,
+            bottomRightCornerIcon,
+            bottomLeftCornerIcon,
+        )
+    }
+
 
     private fun hideAllStubs(stubId: Int) {
         val allStubs = listOf(
@@ -739,7 +982,24 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewStubStyle,
             viewStubSize,
             viewStubFont,
-            viewStubColor
+            viewStubColor,
+            viewStubShadowAngle,
+            viewStubShadowSingleSlider
+        )
+        allStubs.forEach { currentStub ->
+            if (currentStub?.id != stubId) {
+                currentStub?.gone()
+            } else {
+                currentStub.visible()
+            }
+        }
+    }
+
+    fun hideShadowStubs(stubId: Int) {
+        val allStubs = listOf(
+            viewStubShadowAngle,
+            viewStubShadowSingleSlider,
+            viewStubColorShadow
         )
         allStubs.forEach { currentStub ->
             if (currentStub?.id != stubId) {
@@ -1139,5 +1399,4 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
 
     }
-
 }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <TextView
+        android:id="@+id/position_x"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="X Position"
+        android:textStyle="bold"
+        android:textColor="@color/random"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="@+id/seekBarX"
+        app:layout_constraintTop_toBottomOf="@+id/seekBarX" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/seekBarX"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:value="0"
+        android:valueFrom="-10"
+        android:valueTo="10"
+        app:labelBehavior="gone"
+        app:layout_constraintEnd_toStartOf="@+id/guideline13"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:thumbColor="@color/random"
+        app:trackColorActive="@color/random"
+        app:trackHeight="2dp" />
+
+    <TextView
+        android:id="@+id/position_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Y Postion"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:textColor="@color/random"
+        app:layout_constraintStart_toStartOf="@+id/seekBarY"
+        app:layout_constraintTop_toBottomOf="@+id/seekBarY" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/seekBarY"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:value="0"
+        android:valueFrom="-10"
+        android:valueTo="10"
+        app:labelBehavior="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline13"
+        app:layout_constraintTop_toTopOf="parent"
+        app:thumbColor="@color/random"
+        app:trackColorActive="@color/random"
+        app:trackHeight="2dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline13"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="205dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

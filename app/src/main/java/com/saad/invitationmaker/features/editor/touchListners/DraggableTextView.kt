@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.setPadding
 import com.saad.invitationmaker.R
+import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.core.extensions.vibratePhone
 import com.saad.invitationmaker.features.editor.callbacks.UpdateTouchListenerCallback
 
@@ -154,6 +155,8 @@ class DraggableTextView(
         val x = textView.x
         val y = textView.y
 
+        Utils.log("CurrentViewX: $x")
+        Utils.log("CurrentViewY: $y")
         //TopLeft
         topLeftIcon.x = x - (topLeftIcon.width / 2)
         topLeftIcon.y = y - (topLeftIcon.height / 2)
