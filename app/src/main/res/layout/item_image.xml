@@ -6,20 +6,19 @@
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_margin="8dp">
+        android:layout_height="250dp"
+        android:layout_marginHorizontal="4dp"
+        android:layout_marginVertical="4dp"
+        app:cardCornerRadius="8dp">
 
         <ImageView
             android:id="@+id/imageView1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/wedding_1_thumbnail" />
+    </androidx.cardview.widget.CardView>
 
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

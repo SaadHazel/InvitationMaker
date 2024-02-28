@@ -6,6 +6,7 @@ import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,19 +20,27 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.models.TabData
-import com.saad.invitationmaker.app.utils.Utils
-import com.saad.invitationmaker.app.utils.constants.Constants
+import com.saad.invitationmaker.app.utils.log
+import com.saad.invitationmaker.core.extensions.gone
 import com.saad.invitationmaker.databinding.FragmentCategoriesBinding
+import com.saad.invitationmaker.features.backgrounds.models.CategoryModel
 import com.saad.invitationmaker.features.categories.adapters.CategoriesAdapter
 import com.saad.invitationmaker.features.home.models.GradientColor
+import com.saad.invitationmaker.features.home.models.MainCardModel
 
 
 class CategoriesFragment : Fragment() {
     private lateinit var binding: FragmentCategoriesBinding
     private lateinit var viewPagerAdapter: CategoriesAdapter
     private var selectedPosition: Int = 0
-    private lateinit var tabDataList: List<TabData>
+    private var tabDataList: MutableList<TabData> = mutableListOf()
     private var position: Int? = null
+    private var dataList: List<CategoryModel>? = null
+    private var homeDataList: List<MainCardModel>? = null
+    private var homeDataMutableList: MutableList<MainCardModel> = mutableListOf()
+    private val listOfHit: MutableList<CategoryModel> = mutableListOf()
+    private val categoryList: MutableList<String> = mutableListOf()
+    private val tag = "CATEGORIESFRAGMENT"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,30 +53,90 @@ class CategoriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val tabLayout = binding.tabLayout
-        val getCategory = arguments
-        val category = getCategory!!.getString(Constants.CATEGORY)
-        position = getCategory.getInt(Constants.POSITION)
-        Utils.log("position from fragment: $position")
-        viewPagerAdapter =
-            CategoriesAdapter(requireActivity(), category!!, lifecycleOwner = viewLifecycleOwner)
 
-        tabDataList = listOf(
-            TabData(
-                position = 0,
-                "wedding",
-                R.drawable.wedding_couple,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_pink
-                    )
-                },
-                GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
+        val args = arguments
+
+        //From Home Fragment
+        val homeDataArray: Array<out Parcelable>? = args?.getParcelableArray("dataList")
+        homeDataList = homeDataArray?.filterIsInstance<MainCardModel>() ?: emptyList()
+        log(tag, "dataList: $homeDataList")
+
+        //From Background Fragment
+        val dataArray: Array<out Parcelable>? = args?.getParcelableArray("backgroundsList")
+        dataList = dataArray?.filterIsInstance<CategoryModel>() ?: emptyList()
+
+//        val categoryList: ArrayList<CategoryModel>? =
+//            arguments?.getParcelableArray("backgroundsList")
+//        Log.d("CategoryTag", "$categoryList")
+
+//        val category = getCategory!!.getString(Constants.CATEGORY)
+//        position = getCategory.getInt(Constants.POSITION)
+        if (dataList!!.isNotEmpty()) {
+            for (cat in dataList!!) {
+                listOfHit.add(cat)
+            }
+            position = 0
+            viewPagerAdapter =
+                CategoriesAdapter(
+                    requireActivity(),
+                    dataList = listOfHit,
+                    lifecycleOwner = viewLifecycleOwner
                 )
-            )
-        )
+
+
+            dataList?.forEachIndexed { index, cat ->
+                categoryList.add(cat.category)
+                tabDataList.add(
+                    TabData(
+                        position = index,
+                        text = cat.category,
+                        drawableRes = activity?.let {
+                            ContextCompat.getDrawable(
+                                it,
+                                R.drawable.tab_item_background_light_blue
+                            )
+                        },
+                        color = GradientColor(
+                            startColor = Color.parseColor("#F8B3CB"),
+                            endColor = Color.parseColor("#F76093")
+                        )
+                    ),
+                )
+            }
+        } else if (homeDataList!!.isNotEmpty()) {
+            for (cat in homeDataList!!) {
+                homeDataMutableList.add(cat)
+            }
+            position = 0
+            viewPagerAdapter =
+                CategoriesAdapter(
+                    requireActivity(),
+                    homeDataList = homeDataMutableList,
+                    lifecycleOwner = viewLifecycleOwner
+                )
+
+            homeDataList?.forEachIndexed { index, mainCardModel ->
+                categoryList.add(mainCardModel.heading)
+                tabDataList.add(
+                    TabData(
+                        position = index,
+                        text = mainCardModel.heading,
+                        drawableRes = activity?.let {
+                            ContextCompat.getDrawable(
+                                it,
+                                R.drawable.tab_item_background_light_blue
+                            )
+                        },
+                        color = GradientColor(
+                            startColor = Color.parseColor("#F8B3CB"),
+                            endColor = Color.parseColor("#F76093")
+                        )
+                    ),
+                )
+            }
+        }
+
+
         binding.viewPager.adapter = viewPagerAdapter
 
         goBack()
@@ -83,17 +152,21 @@ class CategoriesFragment : Fragment() {
 
             val tabImageView =
                 customTab.findViewById<ImageView>(R.id.img1)
-
-            tabImageView.setImageResource(tabData.imageResId)
+            if (tabData.imageResId == 0) {
+                tabImageView.gone()
+            } else {
+                tabData.imageResId?.let { tabImageView.setImageResource(it) }
+            }
 
             tabLayout.addTab(tabLayout.newTab().setCustomView(customTab))
-            if (tabTextView.text == category) {
+            if (categoryList.contains(tabTextView.text)) {
                 customTab.isSelected = true
+
             }
         }
 
         binding.viewPager.currentItem = position ?: -1
-        Utils.log("binding.viewPager.currentItem: ${binding.viewPager.currentItem}")
+
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -105,11 +178,9 @@ class CategoriesFragment : Fragment() {
 
 //                binding.viewPager.currentItem = position ?: -1
 
-                Utils.log("tab_position ${tab?.position}")
 
                 updateTabAppearance(tab, true)
                 selectedPosition = tab?.position ?: -1
-//                Utils.log("position $selectedPosition")
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
@@ -138,7 +209,6 @@ class CategoriesFragment : Fragment() {
         tabTextView.paint.setShader(shader)
     }
 
-
     private fun goBack() = binding.apply {
         backBtn.setOnClickListener {
             findNavController().navigateUp()
@@ -152,6 +222,7 @@ class CategoriesFragment : Fragment() {
         if (isSelected) {
             if (tabTextView != null) {
                 textGradient(tabTextView, Color.WHITE, Color.WHITE)
+
             }
             tabTextView?.setTypeface(null, Typeface.BOLD)
             customWhileBackgroundView?.visibility = View.INVISIBLE
@@ -167,30 +238,4 @@ class CategoriesFragment : Fragment() {
             customWhileBackgroundView?.visibility = View.VISIBLE
         }
     }
-
-    override fun onPause() {
-        super.onPause()
-        Utils.log("Fragment onPause Parent")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Utils.log("Fragment onStop Parent")
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        Utils.log("View Destroyed Parent")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Utils.log("Fragment Destroyed Parent")
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Utils.log("Fragment onDetach Parent")
-    }
-
 }

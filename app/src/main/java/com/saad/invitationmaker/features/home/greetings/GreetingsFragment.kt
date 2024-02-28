@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.saad.invitationmaker.app.utils.Utils
+import com.saad.invitationmaker.app.utils.invitationsList
 import com.saad.invitationmaker.databinding.FragmentGreetingsBinding
 import com.saad.invitationmaker.features.home.adapters.InvitationAdapter
 
@@ -25,7 +25,7 @@ class GreetingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val shuffledInvitationsList = Utils.invitationsList.shuffled()
+        val shuffledInvitationsList = invitationsList.shuffled()
         val recyclerView: RecyclerView = binding.recyclerView
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         val adapter = InvitationAdapter(shuffledInvitationsList) { category, position ->

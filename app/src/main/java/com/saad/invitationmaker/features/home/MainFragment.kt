@@ -8,23 +8,30 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.saad.invitationmaker.R
+import com.saad.invitationmaker.core.extensions.gone
+import com.saad.invitationmaker.core.extensions.navigate
+import com.saad.invitationmaker.core.extensions.visible
 import com.saad.invitationmaker.databinding.FragmentMainBinding
 import com.saad.invitationmaker.features.home.adapters.MainPageAdapter
 import com.saad.invitationmaker.features.home.models.TabDataMain
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
-//@AndroidEntryPoint
+@AndroidEntryPoint
 class MainFragment : Fragment() {
     private lateinit var binding: FragmentMainBinding
     private lateinit var viewPagerAdapter: MainPageAdapter
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
     private lateinit var tabDataList: List<TabDataMain>
-
-//    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: HomeViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +49,13 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         init()
+        loaderForData(true)
+        viewModel.cards.observe(viewLifecycleOwner) { cards ->
+            if (cards == null) return@observe
+            loaderForData(false)
+            viewPagerAdapter.inflateData(cards)
+            viewPager.adapter = viewPagerAdapter
+        }
 
         for (tabData in tabDataList) {
             val customTab = LayoutInflater.from(requireContext())
@@ -81,11 +95,15 @@ class MainFragment : Fragment() {
         tabLayout = binding.tabLayout
         viewPager = binding.viewPager
         viewPager.isUserInputEnabled = false
-        viewPagerAdapter = MainPageAdapter(requireActivity()) { category, position ->
-//            navigate(
-//                R.id.nav_host_fragment,
-//                MainFragmentDirections.toEditorFragment()
-//            )
+        viewPagerAdapter = MainPageAdapter(requireActivity()) { category, position, dataList ->
+            navigate(
+                R.id.nav_host_fragment,
+                MainFragmentDirections.toCategoriesFragment(
+                    category,
+                    position,
+                    dataList.toTypedArray()
+                )
+            )
         }
         viewPager.adapter = viewPagerAdapter
     }
@@ -99,5 +117,16 @@ class MainFragment : Fragment() {
             tabTextView?.setTypeface(null, Typeface.NORMAL)
 
         }
+    }
+
+    private fun loaderForData(toggle: Boolean) = binding.apply {
+        if (toggle) {
+            progressBar.visible()
+        } else {
+            CoroutineScope(Dispatchers.Main).launch {
+                progressBar.gone()
+            }
+        }
+
     }
 }

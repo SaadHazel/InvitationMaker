@@ -10,10 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saad.invitationmaker.databinding.FragmentStickerBinding
 import com.saad.invitationmaker.features.editor.adapters.StickerAdapter
 import com.saad.invitationmaker.features.editor.callbacks.StickerCallBack
+import com.saad.invitationmaker.features.editor.mappers.toStickerList
+import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
 
 
 class StickerFragment(
-    private val urls: List<String>,
+    private val urls: CategoryModelSticker,
     private val getSticker: (url: String) -> Unit,
 ) : Fragment() {
     private lateinit var binding: FragmentStickerBinding
@@ -36,7 +38,7 @@ class StickerFragment(
         recyclerView = binding.verticalRecyclerView
 
         adapter = StickerAdapter(
-            urls,
+            urls.hit.toStickerList(),
             object : StickerCallBack {
                 override fun onStickerClick(text: String) {
                     getSticker(text)

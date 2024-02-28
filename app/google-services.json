@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "713201061942",
+    "project_id": "invitationmaker-caca8",
+    "storage_bucket": "invitationmaker-caca8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:713201061942:android:2e172c1c58273d2ab5c897",
+        "android_client_info": {
+          "package_name": "com.saad.invitationmaker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1ExzgPQItgtBRIw_6eljHj6o58j0EoVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

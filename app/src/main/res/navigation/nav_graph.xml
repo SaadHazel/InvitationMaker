@@ -19,12 +19,27 @@
                 android:name="position"
                 app:argType="integer"
                 android:defaultValue="0" />
+            <argument
+                android:name="dataList"
+                app:argType="com.saad.invitationmaker.features.home.models.MainCardModel[]"
+                app:nullable="true"
+                android:defaultValue="@null" />
         </action>
     </fragment>
     <fragment
         android:id="@+id/backgroundFragment"
-        android:name="com.saad.invitationmaker.features.BackgroundFragment"
-        android:label="BackgroundFragment" />
+        android:name="com.saad.invitationmaker.features.backgrounds.BackgroundFragment"
+        android:label="BackgroundFragment">
+        <action
+            android:id="@+id/to_categoriesFragment_from_bg"
+            app:destination="@id/categoriesFragment">
+            <argument
+                android:name="backgroundsList"
+                app:nullable="true"
+                android:defaultValue="@null"
+                app:argType="com.saad.invitationmaker.features.backgrounds.models.CategoryModel[]" />
+        </action>
+    </fragment>
     <fragment
         android:id="@+id/myCreationFragment"
         android:name="com.saad.invitationmaker.features.myCreation.MyCreationFragment"

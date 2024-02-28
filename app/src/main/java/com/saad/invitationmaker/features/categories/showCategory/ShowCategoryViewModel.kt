@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saad.invitationmaker.core.network.models.Hit
-import com.saad.invitationmaker.core.network.repo.Repo
+import com.saad.invitationmaker.core.repo.Repo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

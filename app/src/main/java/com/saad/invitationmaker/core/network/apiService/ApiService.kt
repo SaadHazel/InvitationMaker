@@ -14,8 +14,11 @@ interface ApiService {
     suspend fun getDesignsBackground(
         @Query("page") page: Int,
         @Query("per_page") per_page: Int,
-        @Query("q") q: String,
+        @Query("category") category: String,
         @Query("orientation") orientation: String,
+        @Query("order") order: String,
+        @Query("image_type") image_type: String,
+        @Query("safesearch") safesearch: Boolean,
     ): Response<ImageList>
 
     @Headers("X-Freepik-API-Key: ${BuildConfig.STICKERS_API_KEY}")

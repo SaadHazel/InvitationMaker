@@ -2,13 +2,19 @@ package com.saad.invitationmaker.features.editor
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +23,6 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -28,10 +33,11 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.slider.Slider
 import com.saad.invitationmaker.R
-import com.saad.invitationmaker.app.utils.Utils
+import com.saad.invitationmaker.app.utils.log
 import com.saad.invitationmaker.core.extensions.gone
 import com.saad.invitationmaker.core.extensions.inflateAndGone
 import com.saad.invitationmaker.core.extensions.visible
+import com.saad.invitationmaker.core.network.models.Hit
 import com.saad.invitationmaker.databinding.ActivityEditorBinding
 import com.saad.invitationmaker.databinding.AlignLayoutViewBinding
 import com.saad.invitationmaker.databinding.ColorLayoutViewBinding
@@ -41,10 +47,15 @@ import com.saad.invitationmaker.databinding.FontsLayoutViewBinding
 import com.saad.invitationmaker.databinding.OpacityLayoutViewBinding
 import com.saad.invitationmaker.databinding.RotateLayoutViewBinding
 import com.saad.invitationmaker.databinding.ShadowAngleLayoutViewBinding
+import com.saad.invitationmaker.databinding.ShadowColorLayoutViewBinding
+import com.saad.invitationmaker.databinding.ShadowOpacityLayoutViewBinding
 import com.saad.invitationmaker.databinding.ShadowSingleSliderViewBinding
 import com.saad.invitationmaker.databinding.SizeLayoutItemBinding
 import com.saad.invitationmaker.databinding.SpacerLayoutViewBinding
 import com.saad.invitationmaker.databinding.StyleLayoutItemBinding
+import com.saad.invitationmaker.features.backgrounds.callbacks.BackgroundCallBack
+import com.saad.invitationmaker.features.backgrounds.models.CategoryModel
+import com.saad.invitationmaker.features.editor.adapters.BackgroundsAdapter
 import com.saad.invitationmaker.features.editor.adapters.ColorsAdapter
 import com.saad.invitationmaker.features.editor.adapters.FontsAdapter
 import com.saad.invitationmaker.features.editor.adapters.LayersAdapter
@@ -52,7 +63,9 @@ import com.saad.invitationmaker.features.editor.adapters.MainOptionsAdapter
 import com.saad.invitationmaker.features.editor.adapters.ShadowAdapter
 import com.saad.invitationmaker.features.editor.bottomSheets.EditTextBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.NeonTextBottomSheet
+import com.saad.invitationmaker.features.editor.bottomSheets.SaveBottomSheet
 import com.saad.invitationmaker.features.editor.bottomSheets.StickerBottomSheet
+import com.saad.invitationmaker.features.editor.callbacks.ExitConfirmationDialogListener
 import com.saad.invitationmaker.features.editor.callbacks.ItemColorCallBack
 import com.saad.invitationmaker.features.editor.callbacks.ItemFontClickCallback
 import com.saad.invitationmaker.features.editor.callbacks.ItemShadowClickCallback
@@ -60,23 +73,36 @@ import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperAdapter
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperCallback
 import com.saad.invitationmaker.features.editor.callbacks.MainEditorOptionsItemClick
 import com.saad.invitationmaker.features.editor.callbacks.UpdateTouchListenerCallback
-import com.saad.invitationmaker.features.editor.mappers.toMyData
+import com.saad.invitationmaker.features.editor.dialogs.ExitDialog
+import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
 import com.saad.invitationmaker.features.editor.models.Fonts
 import com.saad.invitationmaker.features.editor.models.LayersModel
 import com.saad.invitationmaker.features.editor.models.MainOptionsData
 import com.saad.invitationmaker.features.editor.models.ViewsData
-import com.saad.invitationmaker.features.editor.models.stickers.SingleStickerUrlList
 import com.saad.invitationmaker.features.editor.touchListners.CornerIconListener
 import com.saad.invitationmaker.features.editor.touchListners.DraggableImageView
 import com.saad.invitationmaker.features.editor.touchListners.DraggableTextView
 import com.saad.invitationmaker.features.editor.utils.CreateViews
+import com.saad.invitationmaker.features.home.models.AllViews
+import com.saad.invitationmaker.features.home.models.DraftAllViews
 import com.skydoves.colorpickerview.listeners.ColorListener
 import dagger.hilt.android.AndroidEntryPoint
+import dev.eren.removebg.RemoveBg
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.InputStream
 
 
 @AndroidEntryPoint
 class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchListenerCallback {
+    private val tag = "EDITORACTIVITYTAG"
+    val allview = AllViews()
     private lateinit var binding: ActivityEditorBinding
+    private val editedViews: MutableList<DraftAllViews> = mutableListOf()
     private var controlLayoutView: ControlsLayoutViewBinding? = null
     private var alignLayoutView: AlignLayoutViewBinding? = null
     private var dRotateLayoutView: DRotateLayoutViewBinding? = null
@@ -89,22 +115,26 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var colorLayoutView: ColorLayoutViewBinding? = null
     private var shadowAngleLayoutView: ShadowAngleLayoutViewBinding? = null
     private var shadowSingleSliderLayoutView: ShadowSingleSliderViewBinding? = null
+    private var shadowColorLayoutView: ShadowColorLayoutViewBinding? = null
+    private var shadowOpacityLayoutView: ShadowOpacityLayoutViewBinding? = null
 
 
     private val viewModel: EditorViewModel by viewModels()
     private lateinit var editorContainer: ConstraintLayout
     private lateinit var mainOptionsRecyclerView: RecyclerView
     private lateinit var selectedOptionsRecyclerView: RecyclerView
+    private var recyclerViewItemsImage: RecyclerView? = null
     private lateinit var mainOptionsAdapter: MainOptionsAdapter
     private lateinit var selectedAdapterOptions: MainOptionsAdapter
     private lateinit var createViews: CreateViews
     private lateinit var views: List<ViewsData>
     private lateinit var bottomOptionsData: List<MainOptionsData>
     private lateinit var bottomSelectedOptionsData: List<MainOptionsData>
+    private lateinit var bottomSelectedOptionsDataImage: List<MainOptionsData>
     private lateinit var fontsList: List<Fonts>
     private lateinit var colorList: List<Int>
     private lateinit var shadowList: List<String>
-    private lateinit var draggableTextView: DraggableTextView
+    private var draggableTextView: DraggableTextView? = null
     private lateinit var draggableImageView: DraggableImageView
     private var cornerIconSize: Int = 0
     private lateinit var bottomRightCornerIcon: CornerIconListener
@@ -112,8 +142,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private lateinit var topRightCornerIcon: CornerIconListener
     private lateinit var topLeftCornerIcon: CornerIconListener
     private lateinit var addNeonText: NeonTextBottomSheet
-    private lateinit var addSticker: StickerBottomSheet
-    private var listOfUrls: SingleStickerUrlList? = null
+    private var saveDesign: SaveBottomSheet? = null
+    private var addSticker: StickerBottomSheet? = null
+
+    private var listOfUrls: List<CategoryModelSticker>? = null
+
+    private var listOfHits: List<Hit>? = null
 
     private var viewStub: ViewStub? = null
     private var viewStubAlign: ViewStub? = null
@@ -128,15 +162,39 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var viewStubShadowAngle: ViewStub? = null
     private var viewStubShadowSingleSlider: ViewStub? = null
     private var viewStubColorShadow: ViewStub? = null
+    private var viewStubOpacityShadow: ViewStub? = null
 
 
-    //shadow vals
+    //All editing values
     private var angleX: Float = 0f
     private var angleY: Float = 0f
-    private var blurVal: Float = 0f
-    private var shadowColor: Int = Color.BLACK
+    private var blurVal: Float = 1f
+    private var viewData: String? = null
+    private var viewId: String? = null
+    private var alignment: String? = null
+    private var opacity: String? = null
+    private var rotation: String? = null
+    private var rotationX: String? = null
+    private var rotationY: String? = null
+    private var dRotationX: String? = null
+    private var dRotationY: String? = null
+    private var shadowAngleX: String? = null
+    private var shadowAngleY: String? = null
+    private var shadowBlur: String? = null
+    var viewType: String? = null
+    private var fontSize: String? = null
+    var font: String? = null
+    private var letterSpacing: String? = null
+    private var lineHeight: String? = null
+    var textStyle: String? = null
+    var width: String? = null
+    var height: String? = null
+    var priority: String? = null
+    private var shadowColor: Int = 2131034146
 
+    private var addPreviousView: Boolean = false
     private var currentView: View? = null
+    private var currentViewColor: String? = null
     private var currentY: Float? = null
     private var currentX: Float? = null
     private val layerList = mutableListOf<LayersModel>()
@@ -154,6 +212,37 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         super.onCreate(savedInstanceState)
         binding = ActivityEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        viewModel.AllBackgrounds.observe(this@EditorActivity) {
+            listOfHits = it
+        }
+        viewModel.AllSticker.observe(this) { data ->
+            log(tag, "Inside Observer $data")
+            if (data != null) {
+                listOfUrls = data
+                log(tag, "Stickers $listOfUrls")
+                addSticker?.updateData(listOfUrls!!)
+            }
+        }
+
+        val extras = intent.extras
+        val url: String? = extras?.getString("url")
+        val imagePath: ByteArray? = intent.getByteArrayExtra("imagePath")
+        var imagePathGallery: String? = null
+        if (url == null && imagePath == null) {
+            imagePathGallery = extras?.getString("imagePathGallery")
+        }
+
+        Log.d("ImageFromPrev", "$imagePath")
+        if (extras != null && url == null && imagePath == null && imagePathGallery == null) {
+            val value = extras.getString("docId")
+            val category = extras.getString("category")
+            CoroutineScope(Dispatchers.IO).launch {
+                viewModel.getSingleCardDesign(category!!, value!!)
+            }
+        }
+
+
 
         binding.stub.setOnInflateListener { _, inflateId ->
             controlLayoutView = ControlsLayoutViewBinding.bind(inflateId)
@@ -203,39 +292,288 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         }
 
         binding.stubColorShadow.setOnInflateListener { _, inflated ->
-            colorLayoutView = ColorLayoutViewBinding.bind(inflated)
+            shadowColorLayoutView = ShadowColorLayoutViewBinding.bind(inflated)
+        }
+
+        binding.stubOpacityShadow.setOnInflateListener { _, inflated ->
+            shadowOpacityLayoutView = ShadowOpacityLayoutViewBinding.bind(inflated)
         }
         init()
+        setData()
+//        creatingCornerIcons()
+        saveDesign()
+//        creatingViews()
 
-        viewModel.stickers.observe(this) { data ->
-            if (data != null) {
-                listOfUrls = data.toMyData()
-//                Utils.log("LiveData: $listOfUrls")
-                addSticker.updateData(listOfUrls!!)
+    }
+
+    private fun saveDesign() = binding.apply {
+        saveDesign = SaveBottomSheet(editorContainer)
+        btnSave.setOnClickListener {
+            saveDesign!!.show(supportFragmentManager, "BSSaveDesignFragment")
+        }
+    }
+
+    // Method to add or update edited views
+    private fun updateView() {
+        val view = DraftAllViews(
+            viewId = viewId,
+            viewData = viewData,
+            alignment = alignment,
+            opacity = opacity,
+            rotation = rotation,
+            rotationX = rotationX,
+            rotationY = rotationY,
+            dRotationX = dRotationX,
+            dRotationY = dRotationY,
+            shadowAngleX = shadowAngleX,
+            shadowAngleY = shadowAngleY,
+            shadowBlur = shadowBlur,
+            shadowColor = shadowColor.toString(), // Converting Int to String
+            viewType = viewType,
+            fontSize = fontSize,
+            font = font,
+            letterSpacing = letterSpacing,
+            lineHeight = lineHeight,
+            textStyle = textStyle,
+            color = currentViewColor,
+            xCoordinate = currentX.toString(),
+            yCoordinate = currentY.toString(),
+            width = width,
+            height = height,
+            priority = priority
+        )
+
+        val existingView = editedViews.find { it.viewId == view.viewId }
+
+        if (existingView != null) {
+            existingView.apply {
+                viewId = view.viewId ?: this.viewId
+                viewData = view.viewData ?: this.viewData
+                alignment = view.alignment ?: this.alignment
+                opacity = view.opacity ?: this.opacity
+                rotation = view.rotation ?: this.rotation
+                rotationX = view.rotationX ?: this.rotationX
+                rotationY = view.rotationY ?: this.rotationY
+                dRotationX = view.dRotationX ?: this.dRotationX
+                dRotationY = view.dRotationY ?: this.dRotationY
+                shadowAngleX = view.shadowAngleX ?: this.shadowAngleX
+                shadowAngleY = view.shadowAngleY ?: this.shadowAngleY
+                shadowBlur = view.shadowBlur ?: this.shadowBlur
+                shadowColor = view.shadowColor ?: this.shadowColor
+                viewType = view.viewType ?: this.viewType
+                fontSize = view.fontSize ?: this.fontSize
+                font = view.font ?: this.font
+                letterSpacing = view.letterSpacing ?: this.letterSpacing
+                lineHeight = view.lineHeight ?: this.lineHeight
+                textStyle = view.textStyle ?: this.textStyle
+                color = view.color ?: this.color
+                xCoordinate = view.xCoordinate ?: this.xCoordinate
+                yCoordinate = view.yCoordinate ?: this.yCoordinate
+                width = view.width ?: this.width
+                height = view.height ?: this.height
+                priority = view.priority ?: this.priority
+            }
+        } else {
+            editedViews.add(view)
+        }
+    }
+
+    private fun setData() {
+
+        val extras = intent.extras
+        var backgroundUrl: String? = null
+        var backgroundGallery: Uri? = null
+        var backgroundCamera: Bitmap? = null
+        if (intent.hasExtra("imagePath")) {
+            backgroundCamera = BitmapFactory.decodeByteArray(
+                intent.getByteArrayExtra("imagePath"),
+                0,
+                intent.getByteArrayExtra("imagePath")!!.size
+            )
+        } else if (intent.hasExtra("imagePathGallery")) {
+            backgroundGallery = Uri.parse(extras?.getString("imagePathGallery"));
+        } else if (intent.hasExtra("url")) {
+            backgroundUrl = extras?.getString("url")
+        }
+
+        if (backgroundUrl != null) {
+            Glide.with(this@EditorActivity).asBitmap().load(backgroundUrl).fitCenter()
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?,
+                    ) {
+                        // Set the loaded bitmap as the background of the CardView
+                        val drawable = BitmapDrawable(resources, resource)
+                        editorContainer.background = drawable
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Implement if needed
+                    }
+                })
+
+        } else if (backgroundCamera != null) {
+
+            Log.d("ImageFromPrev", "InGliding $backgroundCamera")
+            binding.backgroundImg.visible()
+            binding.backgroundImg.setImageBitmap(backgroundCamera)
+            /*  Glide.with(this@EditorActivity).asBitmap().load(imagePath).fitCenter()
+                  .placeholder(R.drawable.ic_launcher_foreground)
+                  .into(object : CustomTarget<Bitmap>() {
+                      override fun onResourceReady(
+                          resource: Bitmap,
+                          transition: Transition<in Bitmap>?,
+                      ) {
+                          // Set the loaded bitmap as the background of the CardView
+                          val drawable = BitmapDrawable(resources, resource)
+                          editorContainer.background = drawable
+                      }
+
+                      override fun onLoadCleared(placeholder: Drawable?) {
+                          // Implement if needed
+                      }
+                  })*/
+
+        } else if (backgroundGallery != null) {
+            Glide.with(this@EditorActivity).asBitmap().load(backgroundGallery).fitCenter()
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?,
+                    ) {
+                        // Set the loaded bitmap as the background of the CardView
+                        val drawable = BitmapDrawable(resources, resource)
+                        editorContainer.background = drawable
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Implement if needed
+                    }
+                })
+        } else {
+            loaderForData(true)
+            viewModel.singleCard.observe(this) { dataList ->
+
+                log(tag, "$dataList")
+//                viewModel.saveGreetingToWeddingCollection(dataList)
+                if (dataList == null) return@observe
+
+                val background = dataList.background
+                //setting background of the editor view
+                Glide.with(this@EditorActivity).asBitmap().load(background).fitCenter()
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .into(object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?,
+                        ) {
+                            // Set the loaded bitmap as the background of the CardView
+                            val drawable = BitmapDrawable(resources, resource)
+                            editorContainer.background = drawable
+                            loaderForData(false)
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Implement if needed
+                        }
+                    })
+
+
+                for (data in dataList.views) {
+                    val viewId = data.viewId
+                    val viewData = data.viewData
+                    val alignment = data.alignment
+                    val viewType = data.viewType
+                    val fontSize = data.fontSize
+                    val font = data.font
+                    val letterSpacing = data.letterSpacing
+                    val lineHeight = data.lineHeight
+                    val textStyle = data.textStyle
+                    val color = data.color
+                    val xCoordinate = data.xCoordinate
+                    val yCoordinate = data.yCoordinate
+                    val width = data.width
+                    val height = data.height
+                    val priority = data.priority
+                    viewType?.let { viewtype ->
+                        xCoordinate?.toFloat()?.let { x ->
+                            yCoordinate?.toFloat()?.let { y ->
+                                viewData?.let { data ->
+                                    priority?.toInt()?.let { priority ->
+                                        width?.let { width ->
+                                            height?.let { height ->
+                                                color?.let { color ->
+                                                    fontSize?.let { size ->
+                                                        textStyle?.let { style ->
+                                                            font?.let { font ->
+                                                                alignment?.let { align ->
+                                                                    letterSpacing?.let { letterSpace ->
+                                                                        viewId?.let {
+                                                                            makingViewsDraggable(
+                                                                                viewType = viewtype,
+                                                                                x = x,
+                                                                                y = y,
+                                                                                data = data,
+                                                                                priority = priority,
+                                                                                width = width,
+                                                                                height = height,
+                                                                                color = color,
+                                                                                fontSize = size,
+                                                                                textStyle = style,
+                                                                                font = font,
+                                                                                alignment = align,
+                                                                                letterSpacing = letterSpace,
+                                                                                viewId = it.toInt()
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+
             }
         }
 
-        creatingCornerIcons()
-
-        creatingViews()
-
     }
 
-    private fun creatingCornerIcons() {
-        bottomRightCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
-        topRightCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
-        topLeftCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
-        bottomLeftCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
+    /*    private fun creatingCornerIcons() {
+            bottomRightCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
+            topRightCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
+            topLeftCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
+            bottomLeftCornerIcon = CornerIconListener(this, cornerIconSize, R.drawable.dot)
 
-        //Adding views to Layout
-        editorContainer.addView(bottomRightCornerIcon)
-        editorContainer.addView(topRightCornerIcon)
-        editorContainer.addView(topLeftCornerIcon)
-        editorContainer.addView(bottomLeftCornerIcon)
-    }
+            //Adding views to Layout
+            editorContainer.addView(bottomRightCornerIcon)
+            editorContainer.addView(topRightCornerIcon)
+            editorContainer.addView(topLeftCornerIcon)
+            editorContainer.addView(bottomLeftCornerIcon)
+            hideCreatedCornerIcon()
+        }
+
+        private fun hideCreatedCornerIcon() {
+            bottomRightCornerIcon.invisible()
+            topRightCornerIcon.invisible()
+            topLeftCornerIcon.invisible()
+            bottomLeftCornerIcon.invisible()
+        }*/
 
 
     private fun init() = binding.apply {
+        recyclerViewItemsImage = recyclerViewSelectedOptionsImage
         viewStub = binding.stub.viewStub
         viewStub?.inflateAndGone()
 
@@ -276,16 +614,47 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         viewStubColorShadow = binding.stubColorShadow.viewStub
         viewStubColorShadow?.inflateAndGone()
 
+        viewStubOpacityShadow = binding.stubOpacityShadow.viewStub
+        viewStubOpacityShadow?.inflateAndGone()
+
+
+
         createViews = CreateViews(this@EditorActivity)
         editorContainer = binding.editorLayout
         addSticker = StickerBottomSheet { stickerUrl ->
-            makingViewsDraggable("image", 200f, 200f, stickerUrl, 6)
+            val randomViewId = (10..30).random()
+            makingViewsDraggable(
+                "image",
+                200f,
+                200f,
+                data = stickerUrl,
+                priority = 6,
+                viewId = randomViewId
+            )
         }
         addNeonText = NeonTextBottomSheet { text ->
-            makingViewsDraggable("text", 100f, 100f, text, 7)
+            val randomViewId = (30..60).random()
+            makingViewsDraggable(
+                "text",
+                100f,
+                100f,
+                data = text,
+                priority = 7,
+                fontSize = "56",
+                viewId = randomViewId.toInt()
+            )
         }
 
         cornerIconSize = 40
+
+        bottomSelectedOptionsDataImage = listOf(
+            MainOptionsData(R.drawable.bottom_control_selected, "Controls"),
+            MainOptionsData(R.drawable.font_size_s, "Size"),
+            MainOptionsData(R.drawable.bottom_color_selected, "Color"),
+            MainOptionsData(R.drawable.active_opacity_icon, "Opacity"),
+            MainOptionsData(R.drawable.rotation_icon, "Rotation"),
+        )
+
         bottomOptionsData = listOf(
             MainOptionsData(R.drawable.selected_neon, "ADD TEXT"),
 //            MainOptionsData(R.drawable.add_text_s, "ADD TEXT"),
@@ -353,27 +722,180 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             R.color.colorAccent,
             R.color.colorBlue
         )
+        /*
 
-        views = listOf(
-            ViewsData(0, createViews.backgroundDesigns, "text", "First Text", 250f, 200f),
-            ViewsData(1, createViews.backgroundDesigns, "text", "Second Text", 300f, 350f),
-            ViewsData(2, createViews.backgroundDesigns, "image", createViews.viewImage, 250f, 550f),
-            ViewsData(3, createViews.backgroundDesigns, "text", "End Text", 250f, 1200f),
-        )
+                views = listOf(
+                    ViewsData(
+                        priority = 0,
+                        backgroundDesignUrl = createViews.backgroundDesigns,
+                        fontSize = "21",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "32",
+                        width = "202",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "THE WEDDING OFF",
+                        x = 342f,
+                        y = 369.27f
+                    ),
+                    ViewsData(
+                        1, createViews.backgroundDesigns,
+                        fontSize = "120.83",
+                        color = "#007357",
+                        font = "cormorantSC",
+                        height = "146",
+                        width = "265",
+                        textStyle = "bold",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "0",
+                        data = "ALEX",
+                        x = 274f,
+                        y = 369.27f
+                    ),
+                    ViewsData(
+                        2, createViews.backgroundDesigns,
+                        fontSize = "120.83",
+                        color = "#7D7D7D",
+                        font = "cormorantSC",
+                        height = "146",
+                        width = "67",
+                        textStyle = "bold",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "0",
+                        data = "&",
+                        x = 552f,
+                        y = 369.27f
+                    ),
+                    ViewsData(
+                        3, createViews.backgroundDesigns,
+                        fontSize = "120.83",
+                        color = "#007357",
+                        font = "cormorantSC",
+                        height = "146",
+                        width = "259",
+                        textStyle = "bold",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "0",
+                        data = "JULIE",
+                        x = 351f,
+                        y = 486.27f
+                    ),
+                    ViewsData(
+                        4, createViews.backgroundDesigns,
+                        fontSize = "23",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "35",
+                        width = "52",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "AUG",
+                        x = 417f,
+                        y = 643.27f
+                    ),
+                    ViewsData(
+                        5, createViews.backgroundDesigns,
+                        fontSize = "23",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "35",
+                        width = "126",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "SATURDAY",
+                        x = 254f,
+                        y = 703.27f
+                    ),
+                    ViewsData(
+                        6, createViews.backgroundDesigns,
+                        fontSize = "80.5",
+                        color = "#373332",
+                        font = "poppins",
+                        height = "121",
+                        width = "84",
+                        textStyle = "bold",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "31",
+                        x = 401f,
+                        y = 660.27f
+                    ),
+                    ViewsData(
+                        7, createViews.backgroundDesigns,
+                        fontSize = "23",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "35",
+                        width = "60",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "2024",
+                        x = 417f,
+                        y = 763.27f
+                    ),
+                    ViewsData(
+                        8, createViews.backgroundDesigns,
+                        fontSize = "23",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "35",
+                        width = "97",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "AT 4 PM",
+                        x = 552f,
+                        y = 703.27f
+                    ),
+                    ViewsData(
+                        9,
+                        createViews.backgroundDesigns,
+                        fontSize = "63.69",
+                        color = "#000000",
+                        font = "poppins",
+                        height = "77",
+                        width = "369",
+                        textStyle = "bold",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "0",
+                        data = "THE CEREMONY",
+                        x = 247f,
+                        y = 833.27f
+                    ),
+                    ViewsData(
+                        10,
+                        createViews.backgroundDesigns,
+                        fontSize = "24",
+                        color = "#383433",
+                        font = "poppins",
+                        height = "36",
+                        width = "576",
+                        textStyle = "regular",
+                        viewType = "text",
+                        alignment = "left",
+                        letterSpacing = "6",
+                        data = "Grand Taj Hotel , Lake View Park, Los Angles",
+                        x = 159f,
+                        y = 926.27f
+                    ),
 
-        //setting background of the editor view
-        Glide.with(this@EditorActivity).asBitmap().load(createViews.backgroundDesigns).fitCenter()
-            .placeholder(R.drawable.ic_launcher_foreground).into(object : CustomTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    // Set the loaded bitmap as the background of the CardView
-                    val drawable = BitmapDrawable(resources, resource)
-                    editorContainer.background = drawable
-                }
-
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    // Implement if needed
-                }
-            })
+                    )
+        */
 
         mainOptionsRecyclerView = horizontalRecyclerViewMainOptions
         mainOptionsRecyclerView.visibility = View.VISIBLE
@@ -391,9 +913,79 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
         mainOptionsRecyclerView.adapter = mainOptionsAdapter
         selectedItemOptionsRecyclerView()
+        selectedItemOptionsImageRecyclerView()
         setupRecyclerView()
         setupButtonLayers()
+        setUpBackButton()
         undoRedoListener()
+    }
+
+    private fun selectedItemOptionsImageRecyclerView() = binding.apply {
+
+        recyclerViewSelectedOptionsImage.layoutManager = LinearLayoutManager(
+            this@EditorActivity, LinearLayoutManager.HORIZONTAL, false
+        )
+
+        recyclerViewSelectedOptionsImage.adapter = MainOptionsAdapter(
+            bottomSelectedOptionsDataImage,
+            object : MainEditorOptionsItemClick {
+                override fun onItemClick(text: String) {
+                    callBackSelectedItemImage(text)
+                }
+            })
+
+        selectedOptionsRecyclerView.adapter = selectedAdapterOptions
+    }
+
+    private fun callBackSelectedItemImage(text: String) {
+        when (text) {
+            "Controls" -> {
+                hideAllCorners()
+                viewStub?.let { hideAllStubs(it.id) }
+                controlLayoutLogic()
+            }
+
+            "Opacity" -> {
+                log(tag, "Opacity Image")
+            }
+
+            "Size" -> {
+                log(tag, "Size Image")
+            }
+
+            "Color" -> {
+                log(tag, "Color Image")
+            }
+
+            "Rotation" -> {
+                log(tag, "Rotation Image")
+            }
+        }
+    }
+
+    private fun setUpBackButton() = binding.apply {
+        btnBack.setOnClickListener {
+            val exitConfirmationDialog = ExitDialog()
+            exitConfirmationDialog.setListener(object : ExitConfirmationDialogListener {
+                override fun onYesClicked() {
+                    log(tag, "Yes")
+                    finish()
+                }
+
+                override fun onNoClicked() {
+                    log(tag, "No")
+
+                }
+
+                override fun onSaveDraftClicked() {
+                    log(tag, "Save")
+
+
+                }
+
+            })
+            exitConfirmationDialog.show(supportFragmentManager, "ExitConfirmationDialog")
+        }
     }
 
     private fun selectedItemOptionsRecyclerView() = binding.apply {
@@ -415,80 +1007,80 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     }
 
     fun callBackSelectedItem(text: String) {
-        Utils.log("callBackSelectedItem - Selected Item: $text")
+
         when (text) {
             "Controls" -> {
-                Utils.log("Controls")
+
                 hideAllCorners()
                 viewStub?.let { hideAllStubs(it.id) }
                 controlLayoutLogic()
             }
 
             "Align" -> {
-                Utils.log("Align")
+
                 hideAllCorners()
                 viewStubAlign?.let { hideAllStubs(it.id) }
                 alignLayoutLogic()
             }
 
             "Shadow" -> {
-                Utils.log("Shadow")
+
                 hideAllCorners()
                 hideAllStubs(0)
                 shadowLayoutLogic()
             }
 
             "Fonts" -> {
-                Utils.log("Fonts")
+
                 hideAllCorners()
                 viewStubFont?.let { hideAllStubs(it.id) }
                 fontLayoutLogic()
             }
 
             "Color" -> {
-                Utils.log("Color")
+
                 hideAllCorners()
                 viewStubColor?.let { hideAllStubs(it.id) }
                 colorLayoutLogic()
             }
 
             "3D Rotate" -> {
-                Utils.log("3D Rotate")
+
                 hideAllCorners()
                 viewStubDRotate?.let { hideAllStubs(it.id) }
                 dRotateLogic()
             }
 
             "Rotation" -> {
-                Utils.log("Rotate")
+
                 hideAllCorners()
                 viewStubRotate?.id?.let { hideAllStubs(it) }
                 rotateLogic()
             }
 
             "Spacing" -> {
-                Utils.log("Spacing")
+
                 hideAllCorners()
                 viewStubSpacer?.id?.let { hideAllStubs(it) }
                 spacerLogic()
             }
 
             "Opacity" -> {
-                Utils.log("Opacity")
+
                 hideAllCorners()
                 viewStubOpacity?.id?.let { hideAllStubs(it) }
                 opacityLogic()
             }
 
             "Style" -> {
-                Utils.log("Style")
+
                 hideAllCorners()
                 viewStubStyle?.id?.let { hideAllStubs(it) }
                 styleLogic()
             }
 
             "Size" -> {
-                Utils.log("Size")
+
                 hideAllCorners()
                 viewStubSize?.id?.let { hideAllStubs(it) }
                 sizeLogic()
@@ -508,20 +1100,20 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     when (shadow) {
                         "OFF" -> {
                             hideAllCornerWithoutShadowList()
-                            Utils.log("onShadowClick: OFF")
                             hideShadowStubs(0)
+                            shadowOffLogic()
                         }
 
                         "ANGLE" -> {
                             hideAllCornerWithoutShadowList()
-                            Utils.log("onShadowClick: ANGLE")
+
                             viewStubShadowAngle?.let { hideShadowStubs(it.id) }
                             shadowAngleLogic()
                         }
 
                         "BLUR" -> {
                             hideAllCornerWithoutShadowList()
-                            Utils.log("onShadowClick: BLUR")
+
                             viewStubShadowSingleSlider?.let { hideShadowStubs(it.id) }
                             shadowBlurLogic()
 
@@ -529,14 +1121,15 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
                         "COLOR" -> {
                             hideAllCornerWithoutShadowList()
-                            Utils.log("onShadowClick: COLOR")
+
                             viewStubColorShadow?.let { hideShadowStubs(it.id) }
                             shadowColorLogic()
                         }
 
                         "OPACITY" -> {
                             hideAllCornerWithoutShadowList()
-                            Utils.log("onShadowClick: OPACITY")
+                            viewStubOpacityShadow?.let { hideShadowStubs(it.id) }
+                            shadowOpacityLogic()
 
                         }
                     }
@@ -545,28 +1138,92 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         )
     }
 
-    private fun shadowColorLogic() = colorLayoutView?.apply {
-        val recyclerViewColor = colorRecyclerView
+    private fun shadowOffLogic() {
+        blurVal = 1f
+        angleX = 0f
+        angleY = 0f
+        shadowColor = 0
+        (currentView as TextView).setShadowLayer(
+            blurVal, angleX, angleY, resources.getColor(
+                shadowColor,
+                null
+            )
+        )
+    }
+
+    private fun shadowOpacityLogic() = shadowOpacityLayoutView?.apply {
+        seekBar.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCornerWithoutShadowList()
+
+
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+
+
+            }
+        })
+        seekBar.addOnChangeListener { slider, value, fromUser ->
+            // Responds to when slider's value is changed
+//            blurVal = value
+            /*    val shadowColorWithOpacity = Color.argb(
+                    value.toInt(),
+                    255,
+                    255,
+                    255
+                )
+
+                (currentView as TextView).setShadowLayer(
+                    value, angleX, angleY,
+                    shadowColorWithOpacity
+                )*/
+
+
+//            val percentage = (value / 255 * 100).toInt()
+//            percentageTv.text = percentage.toString()
+//            Utils.log("addOnChangeListener ${slider.value}")
+        }
+    }
+
+    private fun shadowColorLogic() = shadowColorLayoutView?.apply {
+        val recyclerViewColor = shadowColorRecyclerView
         binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
         binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
-            (currentView as TextView).setTextColor(color) //change to shadow
+//            (currentView as TextView).setTextColor(color)
+            shadowColor = color
+            (currentView as TextView).setShadowLayer(
+                blurVal, angleX, angleY, resources.getColor(
+                    shadowColor,
+                    null
+                )
+            )//change to shadow
         })
         recyclerViewColor.layoutManager = GridLayoutManager(
             this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
         )
         recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
             override fun onItemColorClick(color: Int) {
-                Utils.log("Colors: $color")
-                (currentView as TextView).setTextColor(
-                    resources.getColor(
-                        color,
+                log(tag, "Color Val: $color")
+                shadowColor = color
+                (currentView as TextView).setShadowLayer(
+                    blurVal, angleX, angleY, resources.getColor(
+                        shadowColor,
                         null
                     )
-                ) // change to shadow
+                )
+//                (currentView as TextView).setTextColor(
+//                    resources.getColor(
+//                        color,
+//                        null
+//                    )
+//                ) // change to shadow
             }
 
             override fun onItemColorPickerClick(toggle: Boolean) {
-                Utils.log("toggle: $toggle")
+
                 if (toggle) {
                     binding.colorPicker.visible()
                     binding.alphaSlideBar.visible()
@@ -586,7 +1243,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         })
 
         binding.tvDone.setOnClickListener {
-            colorRecyclerView.visible()
+            recyclerViewColor.visible()
             binding.colorPicker.gone()
             binding.tvDone.gone()
             binding.alphaSlideBar.gone()
@@ -602,19 +1259,25 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCornerWithoutShadowList()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
 
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
+
 
             }
         })
         seekBar.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
-            (currentView as TextView).setShadowLayer(value, angleX, angleY, shadowColor);
+            blurVal = value
+            (currentView as TextView).setShadowLayer(
+                blurVal, angleX, angleY, resources.getColor(
+                    shadowColor,
+                    null
+                )
+            );
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
     }
@@ -623,27 +1286,32 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
         val color: Int = (currentView as TextView).currentTextColor
         val hexColor = String.format("#%06X", 0xFFFFFF and color)
-        Utils.log("Color Hex : $hexColor")
+
 
 
         seekBarX.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCornerWithoutShadowList()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
 
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
+
 
             }
         })
         seekBarX.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
             angleX = value
-            (currentView as TextView).setShadowLayer(1.5f, angleX, angleY, shadowColor);
+            (currentView as TextView).setShadowLayer(
+                blurVal, angleX, angleY, resources.getColor(
+                    shadowColor,
+                    null
+                )
+            );
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
 
@@ -658,7 +1326,6 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
 
-                Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
         })
@@ -666,10 +1333,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             angleY = value
             // Responds to when slider's value is changed
             (currentView as TextView).setShadowLayer(
-                1.5f,
+                blurVal,
                 angleX,
                 angleY,
-                shadowColor
+                resources.getColor(
+                    shadowColor,
+                    null
+                )
             );
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
@@ -686,12 +1356,14 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         )
         recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
             override fun onItemColorClick(color: Int) {
-                Utils.log("Colors: $color")
+                val colorHex = String.format("#%06X", 0xFFFFFF and color)
+                currentViewColor = colorHex
+                log(tag, "color hex: $currentViewColor")
                 (currentView as TextView).setTextColor(resources.getColor(color, null))
             }
 
             override fun onItemColorPickerClick(toggle: Boolean) {
-                Utils.log("toggle: $toggle")
+
                 if (toggle) {
                     binding.colorPicker.visible()
                     binding.alphaSlideBar.visible()
@@ -708,7 +1380,6 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 }
             }
         })
-
         binding.tvDone.setOnClickListener {
             recyclerViewColor.visible()
             binding.colorPicker.gone()
@@ -726,7 +1397,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         fontRecyclerView.adapter =
             FontsAdapter(this@EditorActivity, fontsList, object : ItemFontClickCallback {
                 override fun itemClick(text: Int) {
-                    Utils.log("Font: $text")
+
                     val typeface = ResourcesCompat.getFont(this@EditorActivity, text)
                     (currentView as TextView).typeface = typeface
                 }
@@ -738,22 +1409,22 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
+
 
             }
         })
-        sliderSize.addOnChangeListener { slider, value, fromUser ->
+        sliderSize.addOnChangeListener { _, value, _ ->
             // Responds to when slider's value is changed
             currentView?.layoutParams = ViewGroup.LayoutParams(
                 value.toInt(),
                 value.toInt()
             )
-            Utils.log("addOnChangeListener ${slider.value}")
+
         }
     }
 
@@ -808,25 +1479,31 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     }
 
     private fun opacityLogic() = opacityLayoutView?.apply {
+        log(tag, "color hex in opacity: $currentViewColor")
+
         sliderOpacity.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
-                Utils.log("onStartTrackingTouch ${slider.value}")
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
         })
         sliderOpacity.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
-            (currentView as TextView).setTextColor(Color.argb(value.toInt(), 250, 250, 250));
+            val currentColor = Color.parseColor(currentViewColor)
+            (currentView as TextView).setTextColor(
+                Color.argb(
+                    value.toInt(),
+                    Color.red(currentColor), Color.green(currentColor),
+                    Color.blue(currentColor)
+                )
+            )
             val percentage = (value / 255 * 100).toInt()
             percentageTv.text = percentage.toString()
-            Utils.log("addOnChangeListener ${slider.value}")
         }
     }
 
@@ -835,12 +1512,11 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
 
@@ -848,7 +1524,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         sliderSpacing.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
             (currentView as TextView).letterSpacing = value
-            Utils.log("addOnChangeListener ${slider.value}")
+
         }
     }
 
@@ -859,12 +1535,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
+
 
             }
 
@@ -872,7 +1548,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         seekbar.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
             currentView?.rotation = value
-            Utils.log("addOnChangeListener ${slider.value}")
+
         }
     }
 
@@ -883,13 +1559,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
-                Utils.log("onStartTrackingTouch ${slider.value}")
+
 
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-                Utils.log("onStopTrackingTouch ${slider.value}")
+
 
             }
         })
@@ -906,17 +1582,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 hideAllCorners()
 
 
-                Utils.log("onStartTrackingTouch ${slider.value}")
-
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
 
-                Utils.log("onStopTrackingTouch ${slider.value}")
 
             }
-
         })
         seekBarY.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
@@ -925,49 +1597,23 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         }
     }
 
-    private fun Slider.setTrackColors() {
-        val value = value
-        val half = valueTo / 2
-        val inactiveColor = ContextCompat.getColor(context, R.color.grey)
-        val activeColor = ContextCompat.getColor(context, R.color.random)
-
-        // Determine active and inactive colors based on slider value
-        if (value == 0f) {
-            trackActiveTintList = ContextCompat.getColorStateList(context, R.color.random)!!
-            trackInactiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-        } else if (value < 0) {
-            val ratio = value / half // ratio of the filled track
-            trackActiveTintList = ContextCompat.getColorStateList(context, R.color.random)!!
-            trackInactiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-            trackActiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-
-            trackActiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-        } else {
-            val ratio = value / half // ratio of the filled track
-            trackInactiveTintList = ContextCompat.getColorStateList(context, R.color.random)!!
-            trackActiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-
-            trackInactiveTintList = ContextCompat.getColorStateList(context, R.color.grey)!!
-        }
-    }
-
     private fun hideAllCorners() {
-        draggableTextView.hideIcons(
-            topLeftCornerIcon,
-            topRightCornerIcon,
-            bottomRightCornerIcon,
-            bottomLeftCornerIcon,
-        )
+        /*   draggableTextView?.hideIcons(
+               topLeftCornerIcon,
+               topRightCornerIcon,
+               bottomRightCornerIcon,
+               bottomLeftCornerIcon,
+           )*/
         binding.shadowRecyclerView.gone()
     }
 
     private fun hideAllCornerWithoutShadowList() {
-        draggableTextView.hideIcons(
-            topLeftCornerIcon,
-            topRightCornerIcon,
-            bottomRightCornerIcon,
-            bottomLeftCornerIcon,
-        )
+        /*   draggableTextView?.hideIcons(
+               topLeftCornerIcon,
+               topRightCornerIcon,
+               bottomRightCornerIcon,
+               bottomLeftCornerIcon,
+           )*/
     }
 
 
@@ -984,7 +1630,9 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewStubFont,
             viewStubColor,
             viewStubShadowAngle,
-            viewStubShadowSingleSlider
+            viewStubShadowSingleSlider,
+            viewStubColorShadow,
+            viewStubOpacityShadow
         )
         allStubs.forEach { currentStub ->
             if (currentStub?.id != stubId) {
@@ -999,7 +1647,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         val allStubs = listOf(
             viewStubShadowAngle,
             viewStubShadowSingleSlider,
-            viewStubColorShadow
+            viewStubColorShadow,
+            viewStubOpacityShadow
         )
         allStubs.forEach { currentStub ->
             if (currentStub?.id != stubId) {
@@ -1011,48 +1660,252 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     }
 
     fun callBackItems(text: String) {
+
         if (text == "ADD TEXT") {
+            binding.recyclerViewBackground.gone()
             addNeonText.show(supportFragmentManager, "BSDialogFragment")
         } else if (text == "STICKER") {
-            Utils.log("Inside callBackItemsL: $listOfUrls")
+            log(tag, "Sticker")
             if (listOfUrls != null) {
-                addSticker.show(supportFragmentManager, "StickerDialogFragment")
+                binding.recyclerViewBackground.gone()
+                addSticker?.show(supportFragmentManager, "StickerDialogFragment")
+            }
+        } else if (text == "BACKGROUNDS") {
+            log(tag, "BACKGROUNDS")
+            binding.recyclerViewBackground.visible()
+            binding.recyclerViewBackground.layoutManager = LinearLayoutManager(
+                this@EditorActivity, LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+            binding.recyclerViewBackground.adapter =
+                listOfHits?.let {
+                    BackgroundsAdapter(it, object :
+                        BackgroundCallBack {
+                        override fun onBackgroundClick(url: String) {
+                            Glide.with(this@EditorActivity).asBitmap().load(url).fitCenter()
+                                .placeholder(R.drawable.ic_launcher_foreground)
+                                .into(object : CustomTarget<Bitmap>() {
+                                    override fun onResourceReady(
+                                        resource: Bitmap,
+                                        transition: Transition<in Bitmap>?,
+                                    ) {
+                                        // Set the loaded bitmap as the background of the CardView
+                                        val drawable = BitmapDrawable(resources, resource)
+                                        editorContainer.background = drawable
+                                    }
+
+                                    override fun onLoadCleared(placeholder: Drawable?) {
+                                        // Implement if needed
+                                    }
+                                })
+                        }
+
+                        override fun onCategoryClick(data: List<CategoryModel>) {
+                            //Nothing yet
+                        }
+                    }
+                    )
+                }
+        } else if (text == "BG REMOVER") {
+            log(tag, "BG REMOVER")
+            binding.recyclerViewBackground.gone()
+            openGallery()
+        }
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        val remover = RemoveBg(this@EditorActivity)
+        if (requestCode == REQUEST_IMAGE_CAPTURE_GALLERY && resultCode == Activity.RESULT_OK) {
+            val selectedImageUri: Uri? = data?.data
+            log(tag, "selected Image $selectedImageUri")
+
+            selectedImageUri?.let { uri ->
+                val inputStream: InputStream? = contentResolver.openInputStream(uri)
+                inputStream?.use { stream ->
+                    val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
+                    if (bitmap != null) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            remover.clearBackground(bitmap)
+                                .onStart {
+                                    loader(true)
+                                }
+                                .onCompletion {
+                                    loader(false)
+                                }
+                                .collect { output ->
+                                    withContext(Dispatchers.Main) {
+                                        val viewId = (50..70).random()
+                                        makingViewsDraggable(
+                                            "image",
+                                            200f,
+                                            300f,
+                                            viewId,
+                                            data = "",
+                                            priority = 12,
+                                            imageType = "BITMAP",
+                                            bitmap = output
+                                        )
+                                    }
+                                }
+                        }
+
+                        /*     BackgroundRemover.bitmapForProcessing(bitmap,
+                                 true,
+                                 listener = object : OnBackgroundChangeListener {
+                                     override fun onFailed(exception: Exception) {
+                                         log(tag, "exception $exception")
+                                     }
+
+                                     override fun onSuccess(bitmap: Bitmap) {
+                                         log(tag, "successful bitmap $bitmap")
+                                         val viewId = (50..70).random()
+                                         makingViewsDraggable(
+                                             "image",
+                                             200f,
+                                             300f,
+                                             viewId,
+                                             data = "",
+                                             priority = 12,
+                                             imageType = "BITMAP",
+                                             bitmap = bitmap
+                                         )
+                                     }
+                                 })*/
+                    }
+                }
             }
         }
     }
 
-    private fun creatingViews() = binding.apply {
-        for (data in views) {
-            makingViewsDraggable(data.viewType, data.x, data.y, data.data, priority = data.priority)
 
+    private fun loaderForData(toggle: Boolean) {
+        if (toggle) {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visible()
+            }
+        } else {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.gone()
+            }
         }
+
     }
+
+    private fun loader(toggle: Boolean) {
+        if (toggle) {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visible()
+                binding.transparentGreyView.visible()
+            }
+        } else {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.gone()
+                binding.transparentGreyView.gone()
+            }
+        }
+
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE_GALLERY)
+    }
+    /* private fun creatingViews() = binding.apply {
+
+         for (data in views) {
+             makingViewsDraggable(
+                 data.viewType,
+                 data.x,
+                 data.y,
+                 data = data.data,
+                 priority = data.priority,
+                 width = data.width,
+                 height = data.height,
+                 color = data.color,
+                 fontSize = data.fontSize,
+                 textStyle = data.textStyle,
+                 font = data.font,
+                 alignment = data.alignment,
+                 letterSpacing = data.letterSpacing,
+                 viewId = data.v
+             )
+
+         }
+     }*/
 
     private fun makingViewsDraggable(
         viewType: String,
         x: Float,
         y: Float,
+        viewId: Int,
+        imageType: String = "",
+        bitmap: Bitmap? = null,
+        width: String = "200",
+        height: String = "200",
+        color: String = "#000000",
+        fontSize: String = "20",
+        textStyle: String = "regular",
+        font: String = "poppins",
+        alignment: String = "left",
+        letterSpacing: String = "0",
         data: String,
         priority: Int,
     ) = binding.apply {
         if (viewType == "text") {
             draggableTextView =
                 DraggableTextView(
-                    this@EditorActivity, x, y, data,
+                    this@EditorActivity,
                     currentPosition = { y, x ->
                         currentY = y
                         currentX = x
-                        Utils.log("Current X: $currentX Current Y $currentY")
                     },
                     callback = this@EditorActivity,
                     onItemClick = { booleanCallback ->
                         boolTopBar = booleanCallback
                         toggleUndoRedo(booleanCallback)
                     },
-                    currentView = { currentView, isSelected ->
+                    x = x,
+                    y = y,
+                    opacity = opacity,
+                    rotation = rotation,
+                    text = data,
+                    width = width,
+                    height = height,
+                    color = color,
+                    viewId = viewId,
+                    fontSize = fontSize,
+                    textStyle = textStyle,
+                    font = font,
+                    alignment = alignment,
+                    rotationX = rotationX,
+                    rotationY = rotationY,
+                    dRotationX = dRotationX,
+                    dRotationY = dRotationY,
+                    shadowAngleX = shadowAngleX,
+                    shadowAngleY = shadowAngleY,
+                    shadowBlur = shadowBlur,
+                    shadowColor = shadowColor.toString(),
+                    viewType = viewType,
+                    lineHeight = lineHeight,
+                    priority = priority.toString(),
+                    parent = editorContainer,
+                    letterSpacing = letterSpacing,
+                    currentView = { currentViewId, currentView, isSelected ->
                         this@EditorActivity.currentView = currentView
-                        enableCornerListeners(currentView)
+                        val currentColor =
+                            (this@EditorActivity.currentView as TextView).currentTextColor
+                        this@EditorActivity.currentViewColor =
+                            java.lang.String.format("#%06X", 0xFFFFFF and currentColor)
+                        this@EditorActivity.viewId = currentViewId
+                        log(tag, "CurrentViewID: ${this@EditorActivity.viewId}")
+//                        enableCornerListeners(currentView)
                         if (isSelected) {
+                            binding.recyclerViewBackground.gone()
+                            recyclerViewSelectedOptionsImage.gone()
                             mainOptionsRecyclerView.visibility = View.GONE
                             selectedOptionsRecyclerView.visibility = View.VISIBLE
                         }
@@ -1060,21 +1913,21 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 )
 
             editorContainer.addView(draggableTextView)
-            viewModel.storeInitialPosition(draggableTextView)
-            viewModel.addDynamicView(draggableTextView)
-            layers(draggableTextView, data, priority)
+            viewModel.storeInitialPosition(draggableTextView!!)
+            viewModel.addDynamicView(draggableTextView!!)
+            layers(draggableTextView!!, data, priority)
 
-            draggableTextView.enableDragAndDrop(
-                topLeftCornerIcon,
+            draggableTextView?.enableDragAndDrop(
+                /*topLeftCornerIcon,
                 topRightCornerIcon,
                 bottomRightCornerIcon,
-                bottomLeftCornerIcon,
+                bottomLeftCornerIcon,*/
             )
 
         } else if (viewType == "image") {
             draggableImageView =
                 DraggableImageView(
-                    this@EditorActivity, x, y, data,
+                    this@EditorActivity, x, y, imageType, bitmap, data,
                     onItemClick = { booleanCallback ->
                         boolTopBar = booleanCallback
                         toggleUndoRedo(booleanCallback)
@@ -1084,38 +1937,36 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                 ) { currentView, isSelected ->
                     this@EditorActivity.currentView = currentView
                     currentY = currentView.y
-                    enableCornerListeners(currentView)
+//                    enableCornerListeners(currentView)
                     if (isSelected) {
                         if (stub.isInflated) {
                             hideAllStubs(0)
+                            hideShadowStubs(0)
                         }
 //                            stub.viewStub?.visibility = View.GONE
-                        mainOptionsRecyclerView.visibility = View.VISIBLE
-                        selectedOptionsRecyclerView.visibility = View.GONE
+                        mainOptionsRecyclerView.gone()
+                        shadowRecyclerView.gone()
+                        selectedOptionsRecyclerView.gone()
+                        recyclerViewSelectedOptionsImage.visible()
                     }
                 }
             binding.editorLayout.addView(draggableImageView)
-
             viewModel.storeInitialPosition(draggableImageView)
             viewModel.addDynamicView(draggableImageView)
             layers(draggableImageView, data, priority)
 
-            draggableImageView.enableDragAndDrop(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            draggableImageView.enableDragAndDrop()
         }
     }
 
-    private fun enableCornerListeners(draggableView: View) = binding.apply {
-        /* bottomRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_RIGHT)
+    /*    private fun enableCornerListeners(draggableView: View) = binding.apply {
+            *//* bottomRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_RIGHT)
          topRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.TOP_RIGHT)
          topLeftCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.TOP_LEFT)
-         bottomLeftCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_LEFT)*/
+         bottomLeftCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_LEFT)*//*
 
-        bottomRightCornerIcon.enableResizeOnTouch(
+*/
+    /*        bottomRightCornerIcon.enableResizeOnTouch(
             draggableView,
             minWidth = 100,
             minHeight = 100,
@@ -1145,8 +1996,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             minHeight = 100,
             maxWidth = 600,
             maxHeight = 600
-        )
-    }
+        )*//*
+    }*/
 
     private fun alignLayoutLogic() = alignLayoutView?.apply {
         if (currentView is TextView) {
@@ -1167,81 +2018,81 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         var yDirection = 200f
 
         actionDown.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*   draggableTextView?.hideIcons(
+                   topLeftCornerIcon,
+                   topRightCornerIcon,
+                   bottomRightCornerIcon,
+                   bottomLeftCornerIcon,
+               )*/
 
             currentView?.y = currentView?.y!! + 10
 
         }
         actionUp.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /* draggableTextView?.hideIcons(
+                 topLeftCornerIcon,
+                 topRightCornerIcon,
+                 bottomRightCornerIcon,
+                 bottomLeftCornerIcon,
+             )*/
 
             currentView?.y = currentView?.y!! - 10
 
         }
         actionLeft.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /* draggableTextView?.hideIcons(
+                 topLeftCornerIcon,
+                 topRightCornerIcon,
+                 bottomRightCornerIcon,
+                 bottomLeftCornerIcon,
+             )*/
             currentView?.x = currentView?.x!! - 10
 
         }
         actionRight.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*  draggableTextView?.hideIcons(
+                  topLeftCornerIcon,
+                  topRightCornerIcon,
+                  bottomRightCornerIcon,
+                  bottomLeftCornerIcon,
+              )*/
             currentView?.x = currentView?.x!! + 10
 
         }
 
         actionFlipHorizontally.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /* draggableTextView?.hideIcons(
+                 topLeftCornerIcon,
+                 topRightCornerIcon,
+                 bottomRightCornerIcon,
+                 bottomLeftCornerIcon,
+             )*/
 
             val currentRotationY = currentView?.rotationY ?: 0f
-            Utils.log("currentRotationX: $currentRotationY")
+
             val newRotationY = if (currentRotationY == 0f) 180f else 0f
             currentView?.rotationY = newRotationY
         }
         actionFlipVertically.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*   draggableTextView?.hideIcons(
+                   topLeftCornerIcon,
+                   topRightCornerIcon,
+                   bottomRightCornerIcon,
+                   bottomLeftCornerIcon,
+               )*/
             val currentRotationX = currentView?.rotationX ?: 0f
-            Utils.log("currentRotationX: $currentRotationX")
+
             val newRotationX = if (currentRotationX == 0f) 180f else 0f
             currentView?.rotationX = newRotationX
         }
 
         actionDelete.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*  draggableTextView?.hideIcons(
+                  topLeftCornerIcon,
+                  topRightCornerIcon,
+                  bottomRightCornerIcon,
+                  bottomLeftCornerIcon,
+              )*/
             currentView?.gone()
             if (binding.stub.isInflated) {
                 binding.stub.root.gone()
@@ -1254,31 +2105,33 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         actionCopy.setOnClickListener {
             xDirection += 20
             yDirection += 20
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
-            Utils.log("Current X: $currentX Current Y $currentY")
+            /*  draggableTextView?.hideIcons(
+                  topLeftCornerIcon,
+                  topRightCornerIcon,
+                  bottomRightCornerIcon,
+                  bottomLeftCornerIcon,
+              )*/
+
             if (currentView is TextView) {
                 val data = (currentView as TextView).text.toString()
-                Utils.log("Data in view: $data")
-
+                val randomViewId = (40..60).random()
                 makingViewsDraggable(
-                    "text", xDirection,
-                    yDirection, data,
-                    5
+                    viewType = "text", x = xDirection,
+                    y = yDirection,
+                    data = data,
+                    priority = 10,
+                    fontSize = "56",
+                    viewId = randomViewId,
                 )
             }
         }
         actionEdit.setOnClickListener {
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*  draggableTextView?.hideIcons(
+                  topLeftCornerIcon,
+                  topRightCornerIcon,
+                  bottomRightCornerIcon,
+                  bottomLeftCornerIcon,
+              )*/
             val currentText = (currentView as TextView).text.toString()
             val editBottomSheet = EditTextBottomSheet(currentText) { newText ->
                 (currentView as TextView).text = newText
@@ -1324,17 +2177,30 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             btnUndo.visibility = View.GONE
             btnRefresh.visibility = View.GONE
             btnRedo.visibility = View.GONE
+            btnSave.gone()
             btnDone.visibility = View.VISIBLE
             recyclerViewLayers.visibility = View.GONE
             btnBack.visibility = View.GONE
         }
+        val allParent = currentView?.parent as? ViewGroup
 
         btnDone.setOnClickListener {
+//            hideAllCorners()
+            hideAllStubs(0)
+            if (allParent != null) {
+                draggableTextView?.resetBackgroundForAllViews(allParent)
+                draggableImageView.resetBackgroundForAllViews(allParent)
+            }
+            recyclerViewSelectedOptionsImage.gone()
             isRecyclerViewVisible = false
+            shadowRecyclerView.gone()
             btnUndo.visibility = View.VISIBLE
             btnRefresh.visibility = View.VISIBLE
             btnRedo.visibility = View.VISIBLE
             btnBack.visibility = View.VISIBLE
+            btnSave.visible()
+            selectedOptionsRecyclerView.gone()
+            mainOptionsRecyclerView.visible()
             recyclerViewLayers.visibility = View.GONE
             btnDone.visibility = View.GONE
         }
@@ -1348,12 +2214,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewToUndo?.let {
                 viewModel.undoToInitialPosition(it)
             }
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*  draggableTextView?.hideIcons(
+                  topLeftCornerIcon,
+                  topRightCornerIcon,
+                  bottomRightCornerIcon,
+                  bottomLeftCornerIcon,
+              )*/
 
         }
         btnRedo.setOnClickListener {
@@ -1361,22 +2227,22 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewToRedo?.let {
                 viewModel.redoToInitialPosition(it)
             }
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*    draggableTextView?.hideIcons(
+                    topLeftCornerIcon,
+                    topRightCornerIcon,
+                    bottomRightCornerIcon,
+                    bottomLeftCornerIcon,
+                )*/
 
         }
         btnRefresh.setOnClickListener {
             viewModel.resetAllViewsToInitialPosition(viewModel.dynamicViewsList)
-            draggableTextView.hideIcons(
-                topLeftCornerIcon,
-                topRightCornerIcon,
-                bottomRightCornerIcon,
-                bottomLeftCornerIcon,
-            )
+            /*   draggableTextView?.hideIcons(
+                   topLeftCornerIcon,
+                   topRightCornerIcon,
+                   bottomRightCornerIcon,
+                   bottomLeftCornerIcon,
+               )*/
 
         }
     }
@@ -1395,8 +2261,91 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
     override fun onDrag(view: View) {
         viewModel.addChangeToOrder(view)
-        Utils.log("Call Back From Listener")
+    }
+
+    /* override fun onGettingAllTheValues(
+         viewId: String?,
+ //        viewData: String?,
+         alignment: String?,
+         opacity: String?,
+         rotation: String?,
+         rotationX: String?,
+         rotationY: String?,
+         dRotationX: String?,
+         dRotationY: String?,
+         shadowAngleX: String?,
+         shadowAngleY: String?,
+         shadowBlur: String?,
+         shadowColor: String?,
+         viewType: String?,
+         fontSize: String?,
+         font: String?,
+         letterSpacing: String?,
+         lineHeight: String?,
+         textStyle: String?,
+         color: String?,
+         width: String?,
+         height: String?,
+         priority: String?,
+     ) {
+         Log.d(tag, "viewId: $viewId")
+         Log.d(tag, "alignment: $alignment")
+         Log.d(tag, "opacity: $opacity")
+         Log.d(tag, "rotation: $rotation")
+         Log.d(tag, "rotationX: $rotationX")
+         Log.d(tag, "rotationY: $rotationY")
+         Log.d(tag, "dRotationX: $dRotationX")
+         Log.d(tag, "dRotationY: $dRotationY")
+         Log.d(tag, "shadowAngleX: $shadowAngleX")
+         Log.d(tag, "shadowAngleY: $shadowAngleY")
+         Log.d(tag, "shadowBlur: $shadowBlur")
+         Log.d(tag, "shadowColor: $shadowColor")
+         Log.d(tag, "viewType: $viewType")
+         Log.d(tag, "fontSize: $fontSize")
+         Log.d(tag, "font: $font")
+         Log.d(tag, "letterSpacing: $letterSpacing")
+         Log.d(tag, "lineHeight: $lineHeight")
+         Log.d(tag, "textStyle: $textStyle")
+         Log.d(tag, "color: $color")
+         Log.d(tag, "width: $width")
+         Log.d(tag, "height: $height")
+         Log.d(tag, "priority: $priority")
+     }*/
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val exitConfirmationDialog = ExitDialog()
+        exitConfirmationDialog.setListener(object : ExitConfirmationDialogListener {
+            override fun onYesClicked() {
+                log(tag, "Yes")
+                finish()
+            }
+
+            override fun onNoClicked() {
+                log(tag, "No")
+
+            }
+
+            override fun onSaveDraftClicked() {
+                log(tag, "Save")
+                val cvonvert = AllViews(
+
+                )
 
 
+            }
+
+        })
+        exitConfirmationDialog.show(supportFragmentManager, "ExitConfirmationDialog")
+        if (!exitConfirmationDialog.isVisible) {
+            return
+        } else {
+            super.onBackPressed()
+        }
+
+    }
+
+    companion object {
+        const val REQUEST_IMAGE_CAPTURE_GALLERY = 1
     }
 }

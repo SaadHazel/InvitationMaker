@@ -2,14 +2,13 @@ package com.saad.invitationmaker.features.editor.callbacks
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.saad.invitationmaker.app.utils.Utils
 
 
 class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) :
     ItemTouchHelper.Callback() {
 
     override fun isLongPressDragEnabled(): Boolean {
-        Utils.log("LongPress")
+
         return true
     }
 
@@ -30,9 +29,7 @@ class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) :
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder,
     ): Boolean {
-        Utils.log(
-            "OnMove"
-        )
+
         adapter.onItemMove(viewHolder.adapterPosition, target.adapterPosition)
         adapter.updateZOrder()
 

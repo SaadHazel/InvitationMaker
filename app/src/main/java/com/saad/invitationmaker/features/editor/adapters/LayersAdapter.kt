@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saad.invitationmaker.R
-import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.databinding.LayersItemBinding
 import com.saad.invitationmaker.features.editor.callbacks.ItemTouchHelperAdapter
 import com.saad.invitationmaker.features.editor.models.LayersModel
@@ -53,7 +52,6 @@ class LayersAdapter(
 
                 } else {
                     binding.itemEye.setImageResource(R.drawable.show_eye_icon)
-
                 }
 
                 if (layersModel.view.visibility == View.VISIBLE) {
@@ -107,7 +105,6 @@ class LayersAdapter(
     override fun updateZOrder() {
 
         layersList.forEachIndexed { index, layersModel ->
-            Utils.log("index: $index , Text: ${layersModel.viewData}")
             layersModel.priority = index
             layersModel.view.z = index.toFloat()
         }

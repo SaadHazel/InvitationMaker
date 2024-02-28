@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saad.invitationmaker.R
-import com.saad.invitationmaker.app.utils.Utils
+
 import com.saad.invitationmaker.databinding.ColorLayoutSingleViewBinding
 import com.saad.invitationmaker.features.editor.callbacks.ItemColorCallBack
 
@@ -45,7 +45,7 @@ class ColorsAdapter(
             }
 
             itemView.setOnClickListener {
-                Utils.log("Colors: $color")
+
                 if (position == 0) {
                     itemClickListener.onItemColorPickerClick(true)
                 } else {

@@ -2,12 +2,16 @@ package com.saad.invitationmaker.features.editor
 
 import android.view.View
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saad.invitationmaker.app.utils.Utils
-import com.saad.invitationmaker.core.network.repo.Repo
-import com.saad.invitationmaker.features.editor.models.stickers.Data
+import com.saad.invitationmaker.core.network.models.Hit
+import com.saad.invitationmaker.core.repo.Repo
+import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
+import com.saad.invitationmaker.features.home.models.LocalCardDetailsModel
+import com.sofit.app.utils.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Stack
@@ -16,17 +20,70 @@ import javax.inject.Inject
 @HiltViewModel
 class EditorViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            repo.getSticker("dummy")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if (repo.isBackgroundDataBaseEmpty()) {
+                repo.getAllBackgroundsRemote()
+                getAllBackgrounds()
+            } else {
+                getAllBackgrounds()
+            }
+            if (repo.isStickerDataBaseEmpty()) {
+                repo.getAllStickersRemote()
+                getAllStickers()
+            } else {
+                getAllStickers()
+            }
         }
     }
 
-    val stickers: LiveData<List<Data>?>
-        get() = repo.stickers
+    private val _AllBackgrounds = MutableLiveData<List<Hit>>()
+    private val _AllSticker = MutableLiveData<List<CategoryModelSticker>>()
+
+    val AllBackgrounds: LiveData<List<Hit>>
+        get() = _AllBackgrounds
+
+    val AllSticker: LiveData<List<CategoryModelSticker>>
+        get() = _AllSticker
+
+    private fun getAllBackgrounds() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.getAllBackgrounds.collect { all ->
+                _AllBackgrounds.postValue(all[0].hit)
+            }
+        }
+    }
+
+    private fun getAllStickers() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.getAllStickerss.collect { all ->
+                _AllSticker.postValue(all)
+            }
+        }
+    }
+
+    private val _singleCard = SingleLiveEvent<LocalCardDetailsModel>()
+    val singleCard: LiveData<LocalCardDetailsModel> = _singleCard
+
+
+    suspend fun getSingleCardDesign(category: String, docId: String) {
+        repo.getSingleCardDetailsLocal(category, docId).collect {
+            _singleCard.postValue(it)
+        }
+    }
+
+    /*  fun saveGreetingToWeddingCollection(dataList: LocalCardDetailsModel) {
+          viewModelScope.launch(Dispatchers.IO) {
+              repo.saveGreetingToWeddingCollection(dataList)
+          }
+      }*/
+
+//    val stickers: LiveData<List<Hit>>
+//        get() = repo.stickers
 
     // List to store references to dynamically created views
     val dynamicViewsList = mutableListOf<View>()
-    val initialPositionsListOfAllViews =
+    private val initialPositionsListOfAllViews =
         mutableListOf<MutableMap<View, Pair<Float, Float>>>()
     private val initialPositions = mutableMapOf<View, Pair<Float, Float>>()
     private val updatedPositions = mutableMapOf<View, Pair<Float, Float>>()
@@ -36,6 +93,7 @@ class EditorViewModel @Inject constructor(private val repo: Repo) : ViewModel() 
 
     // Stack to keep track of views that have been undone
     private val redoStack = Stack<View>()
+
 
     fun addDynamicView(view: View) {
         dynamicViewsList.add(view)
@@ -73,7 +131,7 @@ class EditorViewModel @Inject constructor(private val repo: Repo) : ViewModel() 
 
 
         for (element in changeOrderStack) {
-            Utils.log("Stack Elements: $element")
+
         }
 
     }

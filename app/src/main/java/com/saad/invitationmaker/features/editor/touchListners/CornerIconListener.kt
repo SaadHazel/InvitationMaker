@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
-import com.saad.invitationmaker.app.utils.Utils
+
 
 class CornerIconListener(context: Context, iconSize: Int, @DrawableRes iconResource: Int) :
     AppCompatImageView(context) {
@@ -96,13 +96,13 @@ class CornerIconListener(context: Context, iconSize: Int, @DrawableRes iconResou
                     MotionEvent.ACTION_DOWN -> {
                         lastX = event.rawX
                         lastY = event.rawY
-                        Utils.log("Action Down Corner")
+
                     }
 
                     MotionEvent.ACTION_MOVE -> {
                         val deltaX = event.rawX - lastX
                         val deltaY = event.rawY - lastY
-                        Utils.log("Action Move Corner")
+
 
                         when (corner) {
                             Corner.TOP_LEFT -> {
@@ -190,7 +190,7 @@ class CornerIconListener(context: Context, iconSize: Int, @DrawableRes iconResou
                     }
 
                     MotionEvent.ACTION_UP -> {
-                        Utils.log("Action Up Corner")
+
                     }
                 }
                 return true

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/tab_item_background_main"
     android:orientation="horizontal"
-    android:paddingBottom="8dp"
+    android:paddingBottom="2dp"
     android:paddingHorizontal="0dp">
 
     <View

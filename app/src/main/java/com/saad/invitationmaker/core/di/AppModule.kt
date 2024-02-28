@@ -1,8 +1,8 @@
 package com.saad.invitationmaker.core.di
 
 import android.content.Context
-import com.saad.invitationmaker.core.network.repo.Repo
-import com.saad.invitationmaker.core.network.repo.RepoImpl
+import com.saad.invitationmaker.core.repo.Repo
+import com.saad.invitationmaker.core.repo.RepoImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,5 +21,4 @@ class AppModule {
     fun provideRepo(impl: RepoImpl): Repo {
         return impl
     }
-
 }

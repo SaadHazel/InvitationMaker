@@ -17,8 +17,9 @@
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
+
+            android:layout_marginStart="8dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_keyboard_backspace_24"
             app:layout_constraintBottom_toTopOf="@+id/guideline2"
@@ -32,7 +33,6 @@
             android:id="@+id/btn_layers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_layers_24"
             app:layout_constraintBottom_toBottomOf="@+id/btn_back"
@@ -72,16 +72,31 @@
             android:id="@+id/btn_redo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/back_next"
 
+            android:src="@drawable/back_next"
             app:layout_constraintBottom_toBottomOf="@+id/btn_refresh"
-            app:layout_constraintEnd_toStartOf="@+id/btn_done"
+            app:layout_constraintEnd_toStartOf="@+id/btn_save"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/btn_refresh"
             app:layout_constraintTop_toTopOf="@+id/btn_refresh"
             app:layout_constraintVertical_bias="0.0" />
+
+        <TextView
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/round_corner"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Save"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="@+id/btn_redo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btn_redo"
+            app:layout_constraintTop_toTopOf="@+id/btn_redo" />
 
         <ImageButton
             android:id="@+id/btn_done"
@@ -91,13 +106,13 @@
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_done_24"
-
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/guideline2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/btn_redo"
             app:layout_constraintTop_toTopOf="parent" />
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/editor_layout"
@@ -112,6 +127,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/guideline2">
 
+            <ImageView
+                android:id="@+id/background_img"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -140,6 +164,30 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent" />
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
+
+        <View
+            android:id="@+id/transparent_grey_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="@color/grey_transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView_selected_options"
             android:layout_width="0dp"
@@ -152,6 +200,41 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_selected_options_image"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/light_grey"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="14dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ViewStub
+            android:id="@+id/stub_control_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/control_layout_view_image"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="28dp"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
 
         <ViewStub
             android:id="@+id/stub"
@@ -290,7 +373,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inflatedId="@+id/subTree"
-            android:layout="@layout/color_layout_view"
+            android:layout="@layout/shadow_color_layout_view"
+            app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+
+        <ViewStub
+            android:id="@+id/stub_opacity_shadow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/shadow_opacity_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -309,10 +403,10 @@
             android:id="@+id/tv_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:text="Done"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="8dp"
             android:layout_marginBottom="6dp"
+            android:text="Done"
             android:textStyle="bold"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/color_picker"
@@ -335,15 +429,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
             app:borderColor_AlphaSlideBar="@android:color/darker_gray"
             app:borderSize_AlphaSlideBar="5"
-            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="12dp"
 
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:selector_AlphaSlideBar="@drawable/colorpickerview_wheel" />
 
         <androidx.constraintlayout.widget.Guideline
@@ -358,7 +452,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_begin="46dp" />
+            app:layout_constraintGuide_begin="53dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

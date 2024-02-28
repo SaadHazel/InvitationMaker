@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide
 class CreateViews(private val context: Context) {
 
     val backgroundDesigns =
-        "https://firebasestorage.googleapis.com/v0/b/fir-58baf.appspot.com/o/wedding_cards%2Fcard_2.jpg?alt=media&token=f70932b8-1aaf-4911-a12d-7ab892fcc8b4"
+        "https://firebasestorage.googleapis.com/v0/b/invitationmaker-caca8.appspot.com/o/invitation%2Fwedding%2Fbackground%2Fwedding_1.png?alt=media&token=5f763be9-be07-4723-b9a3-7869e30d0117"
     val viewImage =
         "https://firebasestorage.googleapis.com/v0/b/fir-58baf.appspot.com/o/wedding_cards%2Fbackgrounds%2Fbackground.png?alt=media&token=726ca54e-c028-4e79-9a98-73fa18e9f619"
 

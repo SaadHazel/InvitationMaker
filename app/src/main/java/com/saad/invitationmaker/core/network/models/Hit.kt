@@ -1,16 +1,14 @@
 package com.saad.invitationmaker.core.network.models
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
 
-@Entity(tableName = "cards")
+@Parcelize
 data class Hit(
-    @PrimaryKey(autoGenerate = true)
-    val roomId: Int,
-    val collections: Int,
     val comments: Int,
     val downloads: Int,
+    val collections: Int,
     val id: Int,
     val imageHeight: Int,
     val imageSize: Int,
@@ -30,4 +28,4 @@ data class Hit(
     val webformatHeight: Int,
     val webformatURL: String,
     val webformatWidth: Int,
-)
+) : Parcelable

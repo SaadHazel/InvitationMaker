@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.saad.invitationmaker.R
-import com.saad.invitationmaker.app.utils.Utils
 import com.saad.invitationmaker.databinding.ItemStickerBinding
 import com.saad.invitationmaker.features.editor.callbacks.StickerCallBack
 
@@ -33,7 +32,6 @@ class StickerAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(imageUrl: String, stickerClickListener: StickerCallBack) {
-            Utils.log("Image Url: $imageUrl")
             // Using Glide to load image into ImageView
             itemView.setOnClickListener {
                 stickerClickListener.onStickerClick(imageUrl)

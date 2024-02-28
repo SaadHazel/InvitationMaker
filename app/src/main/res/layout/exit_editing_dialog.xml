@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:backgroundTint="@color/white">
+
+    <TextView
+        android:id="@+id/textDraftExit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_6sdp"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:padding="@dimen/_4sdp"
+        android:text="Are You Sure You want to exit current Invitation"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_14sdp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        style="@style/TextAppearance.Material3.HeadlineLarge" />
+
+    <LinearLayout
+        android:id="@+id/btns"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_12sdp"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textDraftExit">
+
+        <Button
+            android:id="@+id/btn_yes"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_32sdp"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:background="@android:color/transparent"
+            android:padding="@dimen/_1sdp"
+            android:text="Yes"
+            android:textAllCaps="false"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/_14sdp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/colorAccent"
+            style="@style/TextAppearance.Material3.HeadlineMedium" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:layout_margin="@dimen/_1sdp"
+            android:background="@color/light_grey" />
+
+        <Button
+            android:id="@+id/btn_no"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_32sdp"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:background="@android:color/transparent"
+            android:padding="@dimen/_1sdp"
+            android:text="No"
+            android:textAllCaps="false"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/_14sdp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/colorAccent"
+            style="@style/TextAppearance.Material3.HeadlineMedium" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:layout_margin="@dimen/_1sdp"
+            android:background="@color/light_grey" />
+
+        <Button
+            android:id="@+id/btn_savedrafts"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_32sdp"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:background="@android:color/transparent"
+            android:padding="@dimen/_1sdp"
+            android:text="Save Draft"
+            android:textAllCaps="false"
+            android:textColor="@color/colorpink"
+            android:textSize="@dimen/_14sdp"
+            android:textStyle="bold"
+            style="@style/TextAppearance.Material3.HeadlineLarge" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -12,23 +12,26 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.models.TabData
-import com.saad.invitationmaker.app.utils.Utils
+import com.saad.invitationmaker.app.utils.log
 import com.saad.invitationmaker.databinding.FragmentStickersBottomSheetBinding
 import com.saad.invitationmaker.features.editor.adapters.ViewPagerAdapter
-import com.saad.invitationmaker.features.editor.models.stickers.SingleStickerUrlList
+import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
 import com.saad.invitationmaker.features.home.adapters.HorizontalCategoryAdapter
 import com.saad.invitationmaker.features.home.callbacks.HorizontalCategoryItemClick
 import com.saad.invitationmaker.features.home.models.GradientColor
 
 class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
     BottomSheetDialogFragment() {
+    private val tag = "StickerBottomSheet"
     private lateinit var binding: FragmentStickersBottomSheetBinding
     private lateinit var horizontalRecyclerView: RecyclerView
     private lateinit var viewPager: ViewPager2
     private lateinit var viewPagerAdapter: ViewPagerAdapter
     private lateinit var horizontalCategoryAdapter: HorizontalCategoryAdapter
+    private val horizontalCategoryList: MutableList<TabData> = mutableListOf()
+    private val allStickerOptions = mutableSetOf<String>()
 
-    private var listOfUrls: SingleStickerUrlList? = null
+    private var listOfUrls: List<CategoryModelSticker>? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,93 +49,31 @@ class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
     private fun init() {
         horizontalRecyclerView = binding.recyclerViewHorizontal
         viewPager = binding.viewPager2
-        val horizontalCategoryList = listOf(
-            TabData(
-                position = 0,
-                "Premium",
-                R.drawable.wedding_couple,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_light_blue
+        horizontalCategoryList.clear()
+        listOfUrls?.forEach { data ->
+            allStickerOptions.add(data.category)
+        }
+        allStickerOptions.forEachIndexed { index, category ->
+            horizontalCategoryList.add(
+                TabData(
+                    position = index,
+                    category,
+                    R.drawable.wedding_couple,
+                    drawableRes = activity?.let {
+                        ContextCompat.getDrawable(
+                            it,
+                            R.drawable.tab_item_background_light_blue
+                        )
+                    },
+                    GradientColor(
+                        startColor = Color.parseColor("#F76093"),
+                        endColor = Color.parseColor("#F8B3CB")
                     )
-                },
-                GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
                 )
-            ),
-            TabData(
-                position = 1,
-                "Freemium", R.drawable.birthday_cake,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_light_blue
-                    )
-                },
-                GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
+            )
+        }
+        log(tag, " setSize: ${allStickerOptions.size}")
 
-
-            TabData(
-                position = 2,
-                "Ramadan", R.drawable.birthday_cake,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_pink
-                    )
-                }, GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
-                )
-            ),
-            TabData(
-                position = 3,
-                "Birthday", R.drawable.birthday_cake,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_light_blue
-                    )
-                }, GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
-            TabData(
-                position = 4,
-                "Movie Night", R.drawable.birthday_cake,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_pink
-                    )
-                }, GradientColor(
-                    startColor = Color.parseColor("#F76093"),
-                    endColor = Color.parseColor("#F8B3CB")
-                )
-            ),
-            TabData(
-                position = 5,
-                "Baby Shower",
-                R.drawable.birthday_cake,
-                drawableRes = activity?.let {
-                    ContextCompat.getDrawable(
-                        it,
-                        R.drawable.tab_item_background_light_blue
-                    )
-                },
-                GradientColor(
-                    startColor = Color.parseColor("#5CC5E4"),
-                    endColor = Color.parseColor("#C3D9F4")
-                )
-            ),
-        )
 
         initHorizontalRecyclerView(horizontalCategoryList)
 
@@ -143,7 +84,6 @@ class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
     private fun initViewPager() {
         viewPagerAdapter = activity?.let { activity ->
             listOfUrls?.let { urls ->
-                Utils.log("Inside Bottom Sheet adapter: $urls")
                 ViewPagerAdapter(activity, urls) { sticker ->
                     callBack(sticker)
                     this.dismiss()
@@ -151,6 +91,7 @@ class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
             }
         }!!
         viewPager.adapter = viewPagerAdapter
+
     }
 
     private fun initHorizontalRecyclerView(horizontalCategoryList: List<TabData>) {
@@ -163,23 +104,30 @@ class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
             object : HorizontalCategoryItemClick {
                 override fun itemClick(text: TabData) {
                     viewPager.currentItem = text.position
-                    Utils.log("RecylerviewPositionClick: ${text.position}")
+
 
                 }
             }) { position ->
-
-            Utils.log("RecylerviewPosition: $position")
         }
 
         horizontalRecyclerView.adapter = horizontalCategoryAdapter
     }
 
-    fun updateData(data: SingleStickerUrlList?) {
+    fun updateData(data: List<CategoryModelSticker>?) {
         if (data != null) {
-            Utils.log("Inside UpdateData(): $data")
             listOfUrls = data
-        } else {
-            Utils.log("updateData() received null data")
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        log(tag, "onPause - setSize: ${allStickerOptions.size}")
+//        allStickerOptions.clear()
+    }
+
+    override fun dismiss() {
+        super.dismiss()
+        log(tag, "onDismiss")
+        allStickerOptions.clear()
     }
 }
