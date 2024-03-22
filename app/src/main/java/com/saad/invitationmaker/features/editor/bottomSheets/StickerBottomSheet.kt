@@ -119,15 +119,4 @@ class StickerBottomSheet(private val callBack: (url: String) -> Unit) :
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        log(tag, "onPause - setSize: ${allStickerOptions.size}")
-//        allStickerOptions.clear()
-    }
-
-    override fun dismiss() {
-        super.dismiss()
-        log(tag, "onDismiss")
-        allStickerOptions.clear()
-    }
 }

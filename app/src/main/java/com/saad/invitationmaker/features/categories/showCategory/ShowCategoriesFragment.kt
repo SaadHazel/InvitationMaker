@@ -76,11 +76,4 @@ class ShowCategoriesFragment(
 
         binding?.recyclerView?.adapter = adapter
     }
-
-    //Send design to editorFragment
-    /*  private fun onListItemClick(background: String) {
-          //Send this to editor fragment
-      }*/
-
-
 }

@@ -1,6 +1,10 @@
 package com.saad.invitationmaker.core.repo
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.util.Base64
+import android.util.Log
+import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.saad.invitationmaker.app.utils.isInternetAvailable
@@ -11,6 +15,7 @@ import com.saad.invitationmaker.core.network.apiService.ApiService
 import com.saad.invitationmaker.core.network.models.Hit
 import com.saad.invitationmaker.core.network.models.ImageList
 import com.saad.invitationmaker.features.backgrounds.models.CategoryModel
+import com.saad.invitationmaker.features.editor.bottomSheets.fragment.TempModel
 import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
 import com.saad.invitationmaker.features.home.models.AllCardsDesigns
 import com.saad.invitationmaker.features.home.models.AllViews
@@ -24,6 +29,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,17 +43,40 @@ class RepoImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val local: AppDataBase,
 ) : Repo {
-    /* private val getAllGreeting =
-         firestore.collection("categories").document("greeting")*/
-
 
     private val getAllInvitation = firestore.collection("categories").document("invitation")
 
     override val designsLiveData = SingleLiveEvent<List<Hit>>()
+    override suspend fun storeImage(img: String) {
+        try {
 
-//    override val stickerLiveData = SingleLiveEvent<List<Hit>>()
+            val imgBitmap = downloadBitmap(img)
+            if (imgBitmap != null) {
+//                saveImageToHiddenDirectory(imgBitmap)
 
-//    override val stickerLiveData = MutableLiveData<List<Data>?>()
+            }
+
+        } catch (e: Exception) {
+            Log.e("ImageStorage", "Error storing image: ${e.message}")
+        }
+    }
+
+
+    override suspend fun saveTempStickerToDB(sticker: TempModel) {
+        local.tempStickerDao().insertData(sticker)
+    }
+
+    override suspend fun getTempStickerFromRoom(): TempModel {
+        val data = local.tempStickerDao().getStickers()
+        return data
+    }
+
+    fun bitmapToString(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
 
     override suspend fun saveSingleCardLocally(category: String, docId: String) {
         val isAvailable = local.cardsDao().isCardDetailAvailable(docId)
@@ -197,64 +228,72 @@ class RepoImpl @Inject constructor(
             val weddingInvitation = getAllInvitation.collection("wedding").get().await()
             val bridalShower = getAllInvitation.collection("bs").get().await()
             val birthday = getAllInvitation.collection("bd").get().await()
-//            val partyGreeting = getAllGreeting.collection("party").get().await()
 
             val dataList = mutableListOf<AllCardsDesigns>()
 
             fun addDocumentsToDataList(documents: QuerySnapshot, category: String) {
                 for (document in documents) {
+//                    val thumbnailUrl = document.data["thumbnail"].toString()
+//                    val bitmap = downloadBitmap(thumbnailUrl)
+//                    bitmap?.let {
+//                        val fileName = document.id
+//                        val path = saveBitmapToFile(it, fileName)
                     val customModel = AllCardsDesigns(
                         docId = document.id,
                         thumbnail = document.data["thumbnail"].toString(),
                         category = category
                     )
                     dataList.add(customModel)
+//                    }
+
                 }
             }
 
-            // Add documents for each category
-//            addDocumentsToDataList(partyGreeting, "Wedding")
             addDocumentsToDataList(bridalShower, "Bridal Shower")
             addDocumentsToDataList(birthday, "Birthday")
             addDocumentsToDataList(weddingInvitation, "Wedding")
 
             // Insert data into local database
             local.cardsDao().insertData(dataList)
-
-            /* for (document in partyGreeting) {
-                 val customModel = AllCardsDesigns(
-                     docId = document.id,
-                     thumbnail = document.data["thumbnail"].toString(),
-                     category = "Wedding"
-                 )
-                 dataList.add(customModel)
-             }
-             for (document in bridalShower) {
-                 val customModel = AllCardsDesigns(
-                     docId = document.id,
-                     thumbnail = document.data["thumbnail"].toString(),
-                     category = "Bridal Shower"
-                 )
-                 dataList.add(customModel)
-             }
-             for (document in birthday) {
-                 val customModel = AllCardsDesigns(
-                     docId = document.id,
-                     thumbnail = document.data["thumbnail"].toString(),
-                     category = "Birthday"
-                 )
-                 dataList.add(customModel)
-             }
-             for (document in weddingInvitation) {
-                 val customModel = AllCardsDesigns(
-                     docId = document.id,
-                     thumbnail = document.data["thumbnail"].toString(),
-                     category = "Wedding"
-                 )
-                 dataList.add(customModel)
-             }
-             local.cardsDao().insertData(dataList)*/
             return
+        }
+    }
+
+    private fun saveBitmapToFile(bitmap: Bitmap, fileName: String): String {
+        val file = File(context.filesDir, fileName)
+        FileOutputStream(file).use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
+        return file.absolutePath
+    }
+
+    override suspend fun downloadBitmap(imageUrl: String): Bitmap? {
+
+        return try {
+
+            /*   val target = Glide.with(context)
+                   .asBitmap()
+                   .load(imageUrl)
+                   .submit()
+
+               // Get the downloaded Bitmap
+               val bitmap = withContext(Dispatchers.IO) {
+                   target.get()
+               }*/
+            val bitmap = withContext(Dispatchers.IO) {
+                Glide.with(context)
+                    .asBitmap()
+                    .load(imageUrl)
+                    .submit()
+                    .get() // This is a blocking call, but it's done on a background thread
+            }
+            // Cleanup and return the Bitmap
+//            Glide.with(context).clear(target)
+            bitmap
+
+        } catch (e: Exception) {
+            Log.e("ImageDownload", "Error downloading image: ${e.message}")
+            null
         }
     }
 
@@ -269,7 +308,6 @@ class RepoImpl @Inject constructor(
             //Do the DB Call
         } else {
             getPixaBayDesigns(category);
-//            getSticker(category)
         }
     }
 
@@ -297,72 +335,6 @@ class RepoImpl @Inject constructor(
         }
     }
 
-    /* override suspend fun getSticker(category: String) {
-         try {
-             val response =
-                 pixaBayApi.getDesignsBackground(
-                     1,
-                     20,
-                     category,
-                     "vertical",
-                     "latest",
-                     "photo",
-                     true
-                 )
-             *//*       val response = stickerApi.getStickers(
-                       locale = "en-US",
-                       page = 1,
-                       limit = 20,
-                       order = "latest",
-                       term = "flowers",
-                       contentType = "vector"
-                   )*//*
-            if (response.isSuccessful) {
-                *//*    val stickerResponse: Stickers? = response.body()
-                    val stickerData = stickerResponse?.data
-                    log("EDITORACTIVITYTAG", "stickerData $stickerData")*//*
-                stickerLiveData.postValue(response.body()?.hits)
-            } else {
-                log("EDITORACTIVITYTAG", "Response UnSuccessful")
-            }
-        } catch (e: Exception) {
-            log("EDITORACTIVITYTAG", "error in fetching $e")
-        }
-    }*/
-
-    /*    override suspend fun saveGreetingToWeddingCollection(dataList: LocalCardDetailsModel) {
-            val weddingData = hashMapOf(
-                "background" to dataList.background,
-                "views" to dataList.views.map { view ->
-                    hashMapOf(
-                        "viewId" to view.viewId,
-                        "data" to view.viewData,
-                        "alignment" to view.alignment,
-                        "viewType" to view.viewType,
-                        "fontSize" to view.fontSize,
-                        "font" to view.font,
-                        "letterSpacing" to view.letterSpacing,
-                        "lineHeight" to view.lineHeight,
-                        "textStyle" to view.textStyle,
-                        "color" to view.color,
-                        "x" to view.xCoordinate,
-                        "y" to view.yCoordinate,
-                        "width" to view.width,
-                        "height" to view.height,
-                        "priority" to view.priority
-                    )
-                }
-            )
-
-            firestore.collection("categories").document("invitation").collection("wedding")
-                .add(weddingData)
-                .addOnSuccessListener { documentReference ->
-                    println("Greeting document added with ID: ${documentReference.id}")
-                }
-                .addOnFailureListener { e ->
-                    println("Error adding greeting document: $e")
-                }
-        }*/
 
     override suspend fun singleDesignCall(category: String, docId: String) {
         val collectionRef = when (category) {
@@ -383,6 +355,7 @@ class RepoImpl @Inject constructor(
 
             if (snapshot != null && snapshot.exists()) {
                 val background = snapshot.getString("background") ?: ""
+
                 val arrayOfMaps = snapshot.get("views") as? List<Map<String, Any>> ?: emptyList()
 
                 val listOfView = mutableListOf<AllViews>()
@@ -407,6 +380,10 @@ class RepoImpl @Inject constructor(
                     listOfView.add(customSingleDetail)
                 }
 
+                CoroutineScope(Dispatchers.IO).launch {
+                    val bitmap = downloadBitmap(background)
+
+                }
                 val customModel = LocalCardDetailsModel(
                     docId = docId,
                     background = background,
@@ -419,101 +396,4 @@ class RepoImpl @Inject constructor(
             }
         }
     }
-
-    /* override suspend fun singleDesignCall(category: String, docId: String) {
-         if (category == "greetingParty") {
-             try {
-                 getAllGreeting.collection("party").document(docId)
-                     .addSnapshotListener { snapshot, e ->
-                         if (e != null) {
-                             return@addSnapshotListener
-                         }
-                         if (snapshot != null && snapshot.exists()) {
-                             val background = snapshot.getString("background") ?: ""
-                             val arrayOfMaps =
-                                 snapshot.get("views") as? List<Map<String, Any>> ?: emptyList()
-                             val listOfView: MutableList<AllViews> = mutableListOf()
-                             for (data in arrayOfMaps) {
-                                 val customSingleDetail = AllViews(
-                                     viewId = data["viewId"] as? String,
-                                     viewData = data["data"] as? String,
-                                     alignment = data["alignment"] as? String,
-                                     viewType = data["viewType"] as? String,
-                                     fontSize = data["fontSize"] as? String,
-                                     font = data["font"] as? String,
-                                     letterSpacing = data["letterSpacing"] as? String,
-                                     lineHeight = data["lineHeight"] as? String,
-                                     textStyle = data["textStyle"] as? String,
-                                     color = data["color"] as? String,
-                                     xCoordinate = data["x"] as? String,
-                                     yCoordinate = data["y"] as? String,
-                                     width = data["width"] as? String,
-                                     height = data["height"] as? String,
-                                     priority = data["priority"] as? String
-                                 )
-                                 log("GEttingData", "$customSingleDetail")
-                                 listOfView.add(customSingleDetail)
-                             }
-                             log("GEttingData", "In List $listOfView")
-                             val customModel = LocalCardDetailsModel(
-                                 docId = docId,
-                                 background = background,
-                                 listOfView
-                             )
-                             CoroutineScope(Dispatchers.IO).launch {
-                                 local.cardsDao().insertCardsDetail(customModel)
-                             }
-                         }
-                     }
-             } catch (e: Exception) {
-
-             }
-         } else if (category == "invitationWedding") {
-             try {
-                 getAllInvitation.collection("wedding").document(docId)
-                     .addSnapshotListener { snapshot, e ->
-                         if (e != null) {
-                             return@addSnapshotListener
-                         }
-                         if (snapshot != null && snapshot.exists()) {
-                             val background = snapshot.getString("background") ?: ""
-                             val arrayOfMaps =
-                                 snapshot.get("views") as? List<Map<String, Any>> ?: emptyList()
-                             val listOfView: MutableList<AllViews> = mutableListOf()
-                             for (data in arrayOfMaps) {
-                                 val customSingleDetail = AllViews(
-                                     viewId = data["viewId"] as? String,
-                                     viewData = data["data"] as? String,
-                                     alignment = data["alignment"] as? String,
-                                     viewType = data["viewType"] as? String,
-                                     fontSize = data["fontSize"] as? String,
-                                     font = data["font"] as? String,
-                                     letterSpacing = data["letterSpacing"] as? String,
-                                     lineHeight = data["lineHeight"] as? String,
-                                     textStyle = data["textStyle"] as? String,
-                                     color = data["color"] as? String,
-                                     xCoordinate = data["x"] as? String,
-                                     yCoordinate = data["y"] as? String,
-                                     width = data["width"] as? String,
-                                     height = data["height"] as? String,
-                                     priority = data["priority"] as? String
-                                 )
-                                 listOfView.add(customSingleDetail)
-                             }
-                             val customModel = LocalCardDetailsModel(
-                                 docId = docId,
-                                 background = background,
-                                 listOfView
-                             )
-
-                             CoroutineScope(Dispatchers.IO).launch {
-                                 local.cardsDao().insertCardsDetail(customModel)
-                             }
-                         }
-                     }
-             } catch (e: Exception) {
-
-             }
-         }
-     }*/
 }

@@ -38,10 +38,10 @@ class ExitDialog : DialogFragment() {
             dismiss()
         }
 
-        view.findViewById<Button>(R.id.btn_savedrafts).setOnClickListener {
-            listener?.onSaveDraftClicked()
-            dismiss()
-        }
+        /*  view.findViewById<Button>(R.id.btn_savedrafts).setOnClickListener {
+              listener?.onSaveDraftClicked()
+              dismiss()
+          }*/
     }
 
     override fun onStart() {

@@ -1,6 +1,7 @@
 package com.saad.invitationmaker.features.editor
 
 
+//import dev.eren.removebg.RemoveBg
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
@@ -19,6 +20,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewStub
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -41,16 +43,21 @@ import com.saad.invitationmaker.core.network.models.Hit
 import com.saad.invitationmaker.databinding.ActivityEditorBinding
 import com.saad.invitationmaker.databinding.AlignLayoutViewBinding
 import com.saad.invitationmaker.databinding.ColorLayoutViewBinding
+import com.saad.invitationmaker.databinding.ColorLayoutViewImageBinding
+import com.saad.invitationmaker.databinding.ControlLayoutViewImageBinding
 import com.saad.invitationmaker.databinding.ControlsLayoutViewBinding
 import com.saad.invitationmaker.databinding.DRotateLayoutViewBinding
 import com.saad.invitationmaker.databinding.FontsLayoutViewBinding
 import com.saad.invitationmaker.databinding.OpacityLayoutViewBinding
+import com.saad.invitationmaker.databinding.OpacityLayoutViewImageBinding
 import com.saad.invitationmaker.databinding.RotateLayoutViewBinding
+import com.saad.invitationmaker.databinding.RotateLayoutViewImageBinding
 import com.saad.invitationmaker.databinding.ShadowAngleLayoutViewBinding
 import com.saad.invitationmaker.databinding.ShadowColorLayoutViewBinding
 import com.saad.invitationmaker.databinding.ShadowOpacityLayoutViewBinding
 import com.saad.invitationmaker.databinding.ShadowSingleSliderViewBinding
 import com.saad.invitationmaker.databinding.SizeLayoutItemBinding
+import com.saad.invitationmaker.databinding.SizeLayoutViewImageBinding
 import com.saad.invitationmaker.databinding.SpacerLayoutViewBinding
 import com.saad.invitationmaker.databinding.StyleLayoutItemBinding
 import com.saad.invitationmaker.features.backgrounds.callbacks.BackgroundCallBack
@@ -87,14 +94,9 @@ import com.saad.invitationmaker.features.home.models.AllViews
 import com.saad.invitationmaker.features.home.models.DraftAllViews
 import com.skydoves.colorpickerview.listeners.ColorListener
 import dagger.hilt.android.AndroidEntryPoint
-import dev.eren.removebg.RemoveBg
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.InputStream
 
 
 @AndroidEntryPoint
@@ -118,6 +120,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var shadowColorLayoutView: ShadowColorLayoutViewBinding? = null
     private var shadowOpacityLayoutView: ShadowOpacityLayoutViewBinding? = null
 
+    //Image Stubs
+    private var controlLayoutViewImage: ControlLayoutViewImageBinding? = null
+    private var sizeLayoutViewImage: SizeLayoutViewImageBinding? = null
+    private var colorLayoutViewImage: ColorLayoutViewImageBinding? = null
+    private var opacityLayoutViewImage: OpacityLayoutViewImageBinding? = null
+    private var rotateLayoutViewImage: RotateLayoutViewImageBinding? = null
+
 
     private val viewModel: EditorViewModel by viewModels()
     private lateinit var editorContainer: ConstraintLayout
@@ -132,7 +141,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private lateinit var bottomSelectedOptionsData: List<MainOptionsData>
     private lateinit var bottomSelectedOptionsDataImage: List<MainOptionsData>
     private lateinit var fontsList: List<Fonts>
-    private lateinit var colorList: List<Int>
+    private lateinit var colorList: List<String>
     private lateinit var shadowList: List<String>
     private var draggableTextView: DraggableTextView? = null
     private lateinit var draggableImageView: DraggableImageView
@@ -164,23 +173,30 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private var viewStubColorShadow: ViewStub? = null
     private var viewStubOpacityShadow: ViewStub? = null
 
+    //Image ViewStubs
+    private var viewStubControlImage: ViewStub? = null
+    private var viewStubSizeImage: ViewStub? = null
+    private var viewStubColorImage: ViewStub? = null
+    private var viewStubOpacityImage: ViewStub? = null
+    private var viewStubRotateImage: ViewStub? = null
 
     //All editing values
-    private var angleX: Float = 0f
-    private var angleY: Float = 0f
-    private var blurVal: Float = 1f
+    /*  private var angleX: Float = 0f
+      private var angleY: Float = 0f
+      private var blurVal: Float = 1f*/
     private var viewData: String? = null
     private var viewId: String? = null
     private var alignment: String? = null
     private var opacity: String? = null
     private var rotation: String? = null
-    private var rotationX: String? = null
-    private var rotationY: String? = null
-    private var dRotationX: String? = null
-    private var dRotationY: String? = null
-    private var shadowAngleX: String? = null
-    private var shadowAngleY: String? = null
-    private var shadowBlur: String? = null
+    private var rotationX: String? = 0.0f.toString()
+    private var rotationY: String? = 0.0f.toString()
+    private var dRotationX: String? = 0.0f.toString()
+    private var dRotationY: String? = 0.0f.toString()
+    private var shadowAngleX: Float = 0f
+    private var shadowAngleY: Float = 0f
+    private var shadowBlur: Float = 1f
+    private var shadowColor: String = "#000000"
     var viewType: String? = null
     private var fontSize: String? = null
     var font: String? = null
@@ -190,10 +206,10 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     var width: String? = null
     var height: String? = null
     var priority: String? = null
-    private var shadowColor: Int = 2131034146
 
-    private var addPreviousView: Boolean = false
+
     private var currentView: View? = null
+
     private var currentViewColor: String? = null
     private var currentY: Float? = null
     private var currentX: Float? = null
@@ -298,6 +314,28 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         binding.stubOpacityShadow.setOnInflateListener { _, inflated ->
             shadowOpacityLayoutView = ShadowOpacityLayoutViewBinding.bind(inflated)
         }
+//Image stubs
+        binding.stubControlImage.setOnInflateListener { _, inflated ->
+            controlLayoutViewImage = ControlLayoutViewImageBinding.bind(inflated)
+        }
+
+        binding.stubSizeImage.setOnInflateListener { _, inflated ->
+            sizeLayoutViewImage = SizeLayoutViewImageBinding.bind(inflated)
+        }
+
+        binding.stubColorImage.setOnInflateListener { _, inflated ->
+            colorLayoutViewImage = ColorLayoutViewImageBinding.bind(inflated)
+        }
+
+        binding.stubOpacityImage.setOnInflateListener { _, inflated ->
+            opacityLayoutViewImage = OpacityLayoutViewImageBinding.bind(inflated)
+
+        }
+
+        binding.stubRotateImage.setOnInflateListener { _, inflated ->
+            rotateLayoutViewImage = RotateLayoutViewImageBinding.bind(inflated)
+        }
+
         init()
         setData()
 //        creatingCornerIcons()
@@ -376,6 +414,38 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         } else {
             editedViews.add(view)
         }
+        log(tag, "EditedviewListSize - ${editedViews.size}")
+        editedViews.forEach { editedView ->
+            if (editedView.viewId == viewId) {
+                with(editedView) {
+                    Log.d(tag, "View ID: $viewId")
+                    Log.d(tag, "View Data: $viewData")
+                    Log.d(tag, "Alignment: $alignment")
+                    Log.d(tag, "Opacity: $opacity")
+                    Log.d(tag, "Rotation: $rotation")
+                    Log.d(tag, "Rotation X: $rotationX")
+                    Log.d(tag, "Rotation Y: $rotationY")
+                    Log.d(tag, "Delta Rotation X: $dRotationX")
+                    Log.d(tag, "Delta Rotation Y: $dRotationY")
+                    Log.d(tag, "Shadow Angle X: $shadowAngleX")
+                    Log.d(tag, "Shadow Angle Y: $shadowAngleY")
+                    Log.d(tag, "Shadow Blur: $shadowBlur")
+                    Log.d(tag, "Shadow Color: $shadowColor")
+                    Log.d(tag, "View Type: $viewType")
+                    Log.d(tag, "Font Size: $fontSize")
+                    Log.d(tag, "Font: $font")
+                    Log.d(tag, "Letter Spacing: $letterSpacing")
+                    Log.d(tag, "Line Height: $lineHeight")
+                    Log.d(tag, "Text Style: $textStyle")
+                    Log.d(tag, "Color: $color")
+                    Log.d(tag, "X Coordinate: $xCoordinate")
+                    Log.d(tag, "Y Coordinate: $yCoordinate")
+                    Log.d(tag, "Width: $width")
+                    Log.d(tag, "Height: $height")
+                    Log.d(tag, "Priority: $priority")
+                }
+            }
+        }
     }
 
     private fun setData() {
@@ -419,6 +489,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             Log.d("ImageFromPrev", "InGliding $backgroundCamera")
             binding.backgroundImg.visible()
             binding.backgroundImg.setImageBitmap(backgroundCamera)
+
             /*  Glide.with(this@EditorActivity).asBitmap().load(imagePath).fitCenter()
                   .placeholder(R.drawable.ic_launcher_foreground)
                   .into(object : CustomTarget<Bitmap>() {
@@ -463,7 +534,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
                 val background = dataList.background
                 //setting background of the editor view
-                Glide.with(this@EditorActivity).asBitmap().load(background).fitCenter()
+                Glide.with(this@EditorActivity).asBitmap().load(background).override(600, 600)
+                    .fitCenter()
                     .placeholder(R.drawable.ic_launcher_foreground)
                     .into(object : CustomTarget<Bitmap>() {
                         override fun onResourceReady(
@@ -542,6 +614,22 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                             }
                         }
                     }
+                    this@EditorActivity.viewId = viewId
+                    this@EditorActivity.viewType = viewType
+                    this@EditorActivity.viewData = viewData
+                    this@EditorActivity.alignment = alignment
+                    this@EditorActivity.fontSize = fontSize
+                    this@EditorActivity.font = font
+                    this@EditorActivity.letterSpacing = letterSpacing
+                    this@EditorActivity.lineHeight = lineHeight
+                    this@EditorActivity.textStyle = textStyle
+                    this@EditorActivity.currentViewColor = color
+                    this@EditorActivity.currentX = xCoordinate?.toFloat()
+                    this@EditorActivity.currentY = yCoordinate?.toFloat()
+                    this@EditorActivity.width = width
+                    this@EditorActivity.height = height
+                    this@EditorActivity.priority = priority
+                    updateView()
 
                 }
 
@@ -617,20 +705,41 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         viewStubOpacityShadow = binding.stubOpacityShadow.viewStub
         viewStubOpacityShadow?.inflateAndGone()
 
+        viewStubControlImage = binding.stubControlImage.viewStub
+        viewStubControlImage?.inflateAndGone()
 
+        viewStubSizeImage = binding.stubSizeImage.viewStub
+        viewStubSizeImage?.inflateAndGone()
+
+        viewStubColorImage = binding.stubColorImage.viewStub
+        viewStubColorImage?.inflateAndGone()
+
+        viewStubOpacityImage = binding.stubOpacityImage.viewStub
+        viewStubOpacityImage?.inflateAndGone()
+
+        viewStubRotateImage = binding.stubRotateImage.viewStub
+        viewStubRotateImage?.inflateAndGone()
 
         createViews = CreateViews(this@EditorActivity)
         editorContainer = binding.editorLayout
         addSticker = StickerBottomSheet { stickerUrl ->
+//            CoroutineScope(Dispatchers.IO).launch {
+//                viewModel.saveTempSticker(stickerUrl)
+//                val dataBitmap = viewModel.getTempSticker()
+
+//                withContext(Dispatchers.Main) {
             val randomViewId = (10..30).random()
             makingViewsDraggable(
                 "image",
-                200f,
-                200f,
+                x = 200f,
+                y = 200f,
                 data = stickerUrl,
+//                        bitmap = dataBitmap,
                 priority = 6,
-                viewId = randomViewId
+                viewId = randomViewId,
+//                        imageType = "BITMAP",
             )
+
         }
         addNeonText = NeonTextBottomSheet { text ->
             val randomViewId = (30..60).random()
@@ -697,30 +806,30 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             "OPACITY"
         )
         colorList = listOf(
-            R.color.black,
-            R.color.random,
-            R.color.active_indicator_bg,
-            R.color.grey,
-            R.color.daynight_text_Color,
-            R.color.light_grey,
-            R.color.blue,
-            R.color.colorpink,
-            R.color.daynight_text_white,
-            R.color.daynight_layeritem,
-            R.color.colorAccent,
-            R.color.colorBlue,
-            R.color.black,
-            R.color.random,
-            R.color.active_indicator_bg,
-            R.color.grey,
-            R.color.daynight_text_Color,
-            R.color.light_grey,
-            R.color.blue,
-            R.color.colorpink,
-            R.color.daynight_text_white,
-            R.color.daynight_layeritem,
-            R.color.colorAccent,
-            R.color.colorBlue
+            "#FF000000",     // Black
+            "#FFF14E6F",     // Random
+            "#FFDBDB",       // Active Indicator Background
+            "#FF7A7979",     // Grey
+            "#FF393939",     // Daynight Text Color
+            "#FFCFCECE",     // Light Grey
+            "#FFF64B4B",     // Blue
+            "#FFFD5071",     // Color Pink
+            "#FFFFFFFF",     // Daynight Text White
+            "#FFE5E5E5",     // Daynight Layer Item
+            "#FF393939",     // Color Accent
+            "#FF1394FA",     // Color Blue
+            "#FF000000",     // Black (duplicate)
+            "#FFF14E6F",     // Random (duplicate)
+            "#FFDBDB",       // Active Indicator Background (duplicate)
+            "#FF7A7979",     // Grey (duplicate)
+            "#FF393939",     // Daynight Text Color (duplicate)
+            "#FFCFCECE",     // Light Grey (duplicate)
+            "#FFF64B4B",     // Blue (duplicate)
+            "#FFFD5071",     // Color Pink (duplicate)
+            "#FFFFFFFF",     // Daynight Text White (duplicate)
+            "#FFE5E5E5",     // Daynight Layer Item (duplicate)
+            "#FF393939",     // Color Accent (duplicate)
+            "#FF1394FA"
         )
         /*
 
@@ -940,25 +1049,33 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     private fun callBackSelectedItemImage(text: String) {
         when (text) {
             "Controls" -> {
-                hideAllCorners()
-                viewStub?.let { hideAllStubs(it.id) }
-                controlLayoutLogic()
+                log(tag, "Control Image")
+                viewStubControlImage?.let { hideAllStubs(it.id) }
+                controlLayoutLogicImage()
             }
 
             "Opacity" -> {
                 log(tag, "Opacity Image")
+                viewStubOpacityImage?.let { hideAllStubs(it.id) }
+                opacityLogicImage()
             }
 
             "Size" -> {
                 log(tag, "Size Image")
+                viewStubSizeImage?.let { hideAllStubs(it.id) }
+                sizeLogicImage()
             }
 
             "Color" -> {
                 log(tag, "Color Image")
+                viewStubColorImage?.let { hideAllStubs(it.id) }
+                colorLayoutLogicImage()
             }
 
             "Rotation" -> {
                 log(tag, "Rotation Image")
+                viewStubRotateImage?.let { hideAllStubs(it.id) }
+                rotateLogicImage()
             }
         }
     }
@@ -977,11 +1094,9 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
                 }
 
-                override fun onSaveDraftClicked() {
-                    log(tag, "Save")
-
-
-                }
+                /*   override fun onSaveDraftClicked() {
+                       log(tag, "Save")
+                   }*/
 
             })
             exitConfirmationDialog.show(supportFragmentManager, "ExitConfirmationDialog")
@@ -1010,35 +1125,30 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
         when (text) {
             "Controls" -> {
-
                 hideAllCorners()
                 viewStub?.let { hideAllStubs(it.id) }
                 controlLayoutLogic()
             }
 
             "Align" -> {
-
                 hideAllCorners()
                 viewStubAlign?.let { hideAllStubs(it.id) }
                 alignLayoutLogic()
             }
 
             "Shadow" -> {
-
                 hideAllCorners()
                 hideAllStubs(0)
                 shadowLayoutLogic()
             }
 
             "Fonts" -> {
-
                 hideAllCorners()
                 viewStubFont?.let { hideAllStubs(it.id) }
                 fontLayoutLogic()
             }
 
             "Color" -> {
-
                 hideAllCorners()
                 viewStubColor?.let { hideAllStubs(it.id) }
                 colorLayoutLogic()
@@ -1139,15 +1249,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     }
 
     private fun shadowOffLogic() {
-        blurVal = 1f
-        angleX = 0f
-        angleY = 0f
-        shadowColor = 0
+        shadowBlur = 1f
+        shadowAngleX = 0f
+        shadowAngleY = 0f
+        shadowColor = "#000000"
+        updateView()
         (currentView as TextView).setShadowLayer(
-            blurVal, angleX, angleY, resources.getColor(
-                shadowColor,
-                null
-            )
+            shadowBlur, shadowAngleX, shadowAngleY, Color.parseColor(shadowColor)
         )
     }
 
@@ -1156,70 +1264,57 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCornerWithoutShadowList()
-
-
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-
-
             }
         })
         seekBar.addOnChangeListener { slider, value, fromUser ->
-            // Responds to when slider's value is changed
-//            blurVal = value
-            /*    val shadowColorWithOpacity = Color.argb(
-                    value.toInt(),
-                    255,
-                    255,
-                    255
-                )
 
-                (currentView as TextView).setShadowLayer(
-                    value, angleX, angleY,
-                    shadowColorWithOpacity
-                )*/
+            val opacity = (value / 100f).coerceAtMost(1f)
+            val shadowColorWithOpacity = Color.argb(
+                (opacity * 255).toInt(),
+                Color.red(Color.parseColor(shadowColor)),
+                Color.green(Color.parseColor(shadowColor)),
+                Color.blue(Color.parseColor(shadowColor))
+            )
 
-
-//            val percentage = (value / 255 * 100).toInt()
-//            percentageTv.text = percentage.toString()
-//            Utils.log("addOnChangeListener ${slider.value}")
+            (currentView as TextView).setShadowLayer(
+                shadowBlur, shadowAngleX, shadowAngleY,
+                shadowColorWithOpacity
+            )
         }
     }
 
     private fun shadowColorLogic() = shadowColorLayoutView?.apply {
         val recyclerViewColor = shadowColorRecyclerView
+
         binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
         binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
-//            (currentView as TextView).setTextColor(color)
-            shadowColor = color
+            val hexColor = String.format("#%06X", (0xFFFFFF and color))
+            shadowColor = hexColor
+            updateView()
+            log(tag, "Color Val Picker: ${Color.parseColor(hexColor)}")
+
             (currentView as TextView).setShadowLayer(
-                blurVal, angleX, angleY, resources.getColor(
-                    shadowColor,
-                    null
-                )
-            )//change to shadow
+                shadowBlur, shadowAngleX, shadowAngleY, Color.parseColor(shadowColor)
+            )
         })
         recyclerViewColor.layoutManager = GridLayoutManager(
             this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
         )
         recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
-            override fun onItemColorClick(color: Int) {
-                log(tag, "Color Val: $color")
+            override fun onItemColorClick(color: String) {
+//                val hexColor = String.format("#%06X", (0xFFFFFF and color))
+
                 shadowColor = color
+                updateView()
+                log(tag, "Color Val Recycle: $shadowColor")
+
                 (currentView as TextView).setShadowLayer(
-                    blurVal, angleX, angleY, resources.getColor(
-                        shadowColor,
-                        null
-                    )
+                    shadowBlur, shadowAngleX, shadowAngleY, Color.parseColor(shadowColor)
                 )
-//                (currentView as TextView).setTextColor(
-//                    resources.getColor(
-//                        color,
-//                        null
-//                    )
-//                ) // change to shadow
             }
 
             override fun onItemColorPickerClick(toggle: Boolean) {
@@ -1265,18 +1360,18 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-
+                updateView()
 
             }
         })
         seekBar.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
-            blurVal = value
+            shadowBlur = value
             (currentView as TextView).setShadowLayer(
-                blurVal, angleX, angleY, resources.getColor(
-                    shadowColor,
-                    null
-                )
+                shadowBlur,
+                shadowAngleX,
+                shadowAngleY,
+                Color.parseColor(shadowColor)
             );
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
@@ -1299,18 +1394,15 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-
+                updateView()
 
             }
         })
         seekBarX.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
-            angleX = value
+            shadowAngleX = value
             (currentView as TextView).setShadowLayer(
-                blurVal, angleX, angleY, resources.getColor(
-                    shadowColor,
-                    null
-                )
+                shadowBlur, shadowAngleX, shadowAngleY, Color.parseColor(shadowColor)
             );
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
@@ -1326,40 +1418,90 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
 
-
+                updateView()
             }
         })
         seekBarY.addOnChangeListener { slider, value, fromUser ->
-            angleY = value
+            shadowAngleY = value
             // Responds to when slider's value is changed
             (currentView as TextView).setShadowLayer(
-                blurVal,
-                angleX,
-                angleY,
-                resources.getColor(
-                    shadowColor,
-                    null
-                )
-            );
+                shadowBlur, shadowAngleX, shadowAngleY,
+                Color.parseColor(shadowColor)
+            )
 //            Utils.log("addOnChangeListener ${slider.value}")
         }
     }
 
     private fun colorLayoutLogic() = colorLayoutView?.apply {
         val recyclerViewColor = colorRecyclerView
+
         binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
-        binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
-            (currentView as TextView).setTextColor(color)
+        binding.colorPicker.setColorListener(ColorListener { color, _ ->
+            val colorHex = String.format("#%06X", 0xFFFFFF and color)
+
+            log(tag, "color from picker: $color")
+            log(tag, "color from picker: $colorHex")
+            currentViewColor = colorHex
+            updateView()
+            (currentView as TextView).setTextColor(Color.parseColor(colorHex))
         })
         recyclerViewColor.layoutManager = GridLayoutManager(
             this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
         )
         recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
-            override fun onItemColorClick(color: Int) {
-                val colorHex = String.format("#%06X", 0xFFFFFF and color)
-                currentViewColor = colorHex
+            override fun onItemColorClick(color: String) {
+//                val colorHex = String.format("#%06X", 0xFFFFFF and color)
+                currentViewColor = color.toString()
+                updateView()
+//                log(tag, "color hex: $colorHex")
+                log(tag, "color hex: $color")
+                (currentView as TextView).setTextColor(Color.parseColor(color))
+            }
+
+            override fun onItemColorPickerClick(toggle: Boolean) {
+
+                if (toggle) {
+                    binding.colorPicker.visible()
+                    binding.alphaSlideBar.visible()
+                    binding.tvDone.visible()
+                    recyclerViewColor.gone()
+                    binding.recyclerViewSelectedOptions.gone()
+                    binding.stubColor.viewStub?.gone()
+                } else {
+                    binding.colorPicker.gone()
+                    binding.alphaSlideBar.gone()
+
+                    binding.recyclerViewSelectedOptions.visible()
+                    binding.stubColor.viewStub?.visible()
+                }
+            }
+        })
+        binding.tvDone.setOnClickListener {
+            recyclerViewColor.visible()
+            binding.colorPicker.gone()
+            binding.tvDone.gone()
+            binding.alphaSlideBar.gone()
+            binding.recyclerViewSelectedOptions.visible()
+            binding.stubColor.viewStub?.visible()
+        }
+    }
+
+    private fun colorLayoutLogicImage() = colorLayoutViewImage?.apply {
+        val recyclerViewColor = colorRecyclerView
+        binding.colorPicker.attachAlphaSlider(binding.alphaSlideBar)
+        binding.colorPicker.setColorListener(ColorListener { color, fromUser ->
+            (currentView as ImageView).setColorFilter(color)
+
+        })
+        recyclerViewColor.layoutManager = GridLayoutManager(
+            this@EditorActivity, 2, GridLayoutManager.HORIZONTAL, false
+        )
+        recyclerViewColor.adapter = ColorsAdapter(colorList, object : ItemColorCallBack {
+            override fun onItemColorClick(color: String) {
+//                val colorHex = String.format("#%06X", 0xFFFFFF and color)
+                currentViewColor = color
                 log(tag, "color hex: $currentViewColor")
-                (currentView as TextView).setTextColor(resources.getColor(color, null))
+                (currentView as ImageView).setColorFilter(Color.parseColor(color))
             }
 
             override fun onItemColorPickerClick(toggle: Boolean) {
@@ -1396,15 +1538,38 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         )
         fontRecyclerView.adapter =
             FontsAdapter(this@EditorActivity, fontsList, object : ItemFontClickCallback {
-                override fun itemClick(text: Int) {
+                override fun itemClick(text: Int, fontName: String) {
 
                     val typeface = ResourcesCompat.getFont(this@EditorActivity, text)
                     (currentView as TextView).typeface = typeface
+                    font = fontName
+                    updateView()
                 }
             })
     }
 
     private fun sizeLogic() = sizeLayoutView?.apply {
+        sliderSize.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCorners()
+
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                this@EditorActivity.fontSize = slider.value.toString()
+                updateView()
+                // Responds to when slider's touch event is being stopped
+
+            }
+        })
+        sliderSize.addOnChangeListener { _, value, _ ->
+            // Responds to when slider's value is changed
+            (currentView as TextView).textSize = value
+        }
+    }
+
+    private fun sizeLogicImage() = sizeLayoutViewImage?.apply {
         sliderSize.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
@@ -1439,10 +1604,18 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             if (isBold) {
                 (currentView as TextView).setTypeface(null, Typeface.NORMAL)
+                textStyle = "normal"
+                updateView()
             } else if (isItalic) {
                 (currentView as TextView).setTypeface(null, Typeface.BOLD_ITALIC)
+                textStyle = "bold_italic"
+                updateView()
+
             } else {
                 (currentView as TextView).setTypeface(null, Typeface.BOLD)
+                textStyle = "bold"
+                updateView()
+
             }
         }
         actionUnderline.setOnClickListener {
@@ -1453,9 +1626,13 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             if (isUnderlined) {
                 (currentView as TextView).paintFlags =
                     (currentView as TextView).paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+                textStyle = "normal"
+                updateView()
             } else {
                 (currentView as TextView).paintFlags =
                     (currentView as TextView).paintFlags or Paint.UNDERLINE_TEXT_FLAG
+                textStyle = "underline"
+                updateView()
             }
         }
         actionItalic.setOnClickListener {
@@ -1465,16 +1642,25 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             if (isItalic) {
                 (currentView as TextView).setTypeface(null, Typeface.NORMAL)
+                textStyle = "normal"
+                updateView()
             } else {
                 (currentView as TextView).setTypeface(null, Typeface.ITALIC)
+                textStyle = "italic"
+                updateView()
             }
 
         }
         actionUpperCase.setOnClickListener {
             (currentView as TextView).text = (currentView as TextView).text.toString().uppercase()
+            textStyle = "uppercase"
+            updateView()
         }
         actionLowerCase.setOnClickListener {
             (currentView as TextView).text = (currentView as TextView).text.toString().lowercase()
+            textStyle = "lowercase"
+            updateView()
+
         }
     }
 
@@ -1507,8 +1693,51 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         }
     }
 
+    private fun opacityLogicImage() = opacityLayoutViewImage?.apply {
+
+
+        sliderOpacity.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCorners()
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+
+            }
+        })
+        sliderOpacity.addOnChangeListener { slider, value, fromUser ->
+            // Responds to when slider's value is changed
+            (currentView as ImageView).imageAlpha = value.toInt()
+
+            val percentage = (value / 255 * 100).toInt()
+            percentageTv.text = percentage.toString()
+        }
+    }
+
     private fun spacerLogic() = spacerLayoutView?.apply {
         sliderSpacing.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+                hideAllCorners()
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being stopped
+                updateView()
+            }
+        })
+        sliderSpacing.addOnChangeListener { slider, value, fromUser ->
+            // Responds to when slider's value is changed
+            letterSpacing = value.toString()
+            (currentView as TextView).letterSpacing = value
+        }
+    }
+
+    private fun rotateLogic() = rotateLayoutView?.apply {
+
+        seekbar.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
                 hideAllCorners()
@@ -1518,19 +1747,20 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
 
+                rotation = slider.value.toString()
+                updateView()
             }
 
         })
-        sliderSpacing.addOnChangeListener { slider, value, fromUser ->
+        seekbar.addOnChangeListener { slider, value, fromUser ->
             // Responds to when slider's value is changed
-            (currentView as TextView).letterSpacing = value
+
+            currentView?.rotation = value
 
         }
     }
 
-    private fun rotateLogic() = rotateLayoutView?.apply {
-
-
+    private fun rotateLogicImage() = rotateLayoutViewImage?.apply {
         seekbar.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being started
@@ -1552,7 +1782,6 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         }
     }
 
-
     private fun dRotateLogic() = dRotateLayoutView?.apply {
 
         seekBarX.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -1566,7 +1795,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
 
-
+                dRotationX = slider.value.toString()
+                updateView()
             }
         })
         seekBarX.addOnChangeListener { slider, value, fromUser ->
@@ -1586,8 +1816,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             override fun onStopTrackingTouch(slider: Slider) {
                 // Responds to when slider's touch event is being stopped
-
-
+                dRotationY = slider.value.toString()
+                updateView()
             }
         })
         seekBarY.addOnChangeListener { slider, value, fromUser ->
@@ -1616,7 +1846,6 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
            )*/
     }
 
-
     private fun hideAllStubs(stubId: Int) {
         val allStubs = listOf(
             viewStub,
@@ -1632,7 +1861,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewStubShadowAngle,
             viewStubShadowSingleSlider,
             viewStubColorShadow,
-            viewStubOpacityShadow
+            viewStubOpacityShadow,
+            viewStubControlImage,
+            viewStubColorImage,
+            viewStubSizeImage,
+            viewStubOpacityImage,
+            viewStubRotateImage
         )
         allStubs.forEach { currentStub ->
             if (currentStub?.id != stubId) {
@@ -1683,7 +1917,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     BackgroundsAdapter(it, object :
                         BackgroundCallBack {
                         override fun onBackgroundClick(url: String) {
-                            Glide.with(this@EditorActivity).asBitmap().load(url).fitCenter()
+                            Glide.with(this@EditorActivity).asBitmap().load(url).override(200, 200)
+                                .fitCenter()
                                 .placeholder(R.drawable.ic_launcher_foreground)
                                 .into(object : CustomTarget<Bitmap>() {
                                     override fun onResourceReady(
@@ -1708,22 +1943,23 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     )
                 }
         } else if (text == "BG REMOVER") {
-            log(tag, "BG REMOVER")
-            binding.recyclerViewBackground.gone()
-            openGallery()
+            /* log(tag, "BG REMOVER")
+             binding.recyclerViewBackground.gone()
+             openGallery()*/
         }
 
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        val remover = RemoveBg(this@EditorActivity)
+//        val remover = RemoveBg(this@EditorActivity)
         if (requestCode == REQUEST_IMAGE_CAPTURE_GALLERY && resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = data?.data
             log(tag, "selected Image $selectedImageUri")
 
-            selectedImageUri?.let { uri ->
+            /*selectedImageUri?.let { uri ->
                 val inputStream: InputStream? = contentResolver.openInputStream(uri)
                 inputStream?.use { stream ->
                     val bitmap: Bitmap? = BitmapFactory.decodeStream(stream)
@@ -1753,7 +1989,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                                 }
                         }
 
-                        /*     BackgroundRemover.bitmapForProcessing(bitmap,
+                        *//*     BackgroundRemover.bitmapForProcessing(bitmap,
                                  true,
                                  listener = object : OnBackgroundChangeListener {
                                      override fun onFailed(exception: Exception) {
@@ -1774,13 +2010,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                                              bitmap = bitmap
                                          )
                                      }
-                                 })*/
+                                 })*//*
                     }
                 }
-            }
+            }*/
         }
     }
-
 
     private fun loaderForData(toggle: Boolean) {
         if (toggle) {
@@ -1814,6 +2049,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE_GALLERY)
     }
+
     /* private fun creatingViews() = binding.apply {
 
          for (data in views) {
@@ -1885,25 +2121,30 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     rotationY = rotationY,
                     dRotationX = dRotationX,
                     dRotationY = dRotationY,
-                    shadowAngleX = shadowAngleX,
-                    shadowAngleY = shadowAngleY,
-                    shadowBlur = shadowBlur,
+                    shadowAngleX = shadowAngleX.toString(),
+                    shadowAngleY = shadowAngleY.toString(),
+                    shadowBlur = shadowBlur.toString(),
                     shadowColor = shadowColor.toString(),
                     viewType = viewType,
                     lineHeight = lineHeight,
                     priority = priority.toString(),
                     parent = editorContainer,
                     letterSpacing = letterSpacing,
-                    currentView = { currentViewId, currentView, isSelected ->
+                    currentView = { currentViewId, currentView, isSelected, viewData ->
                         this@EditorActivity.currentView = currentView
                         val currentColor =
                             (this@EditorActivity.currentView as TextView).currentTextColor
                         this@EditorActivity.currentViewColor =
                             java.lang.String.format("#%06X", 0xFFFFFF and currentColor)
                         this@EditorActivity.viewId = currentViewId
-                        log(tag, "CurrentViewID: ${this@EditorActivity.viewId}")
+                        this@EditorActivity.viewData = viewData
+//                        log(tag, "CurrentViewID: ${this@EditorActivity.viewId}")
 //                        enableCornerListeners(currentView)
                         if (isSelected) {
+                            if (stub.isInflated) {
+                                hideAllStubs(0)
+                                hideShadowStubs(0)
+                            }
                             binding.recyclerViewBackground.gone()
                             recyclerViewSelectedOptionsImage.gone()
                             mainOptionsRecyclerView.visibility = View.GONE
@@ -1934,9 +2175,11 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     },
                     callback = this@EditorActivity
 
-                ) { currentView, isSelected ->
+                ) { currentView, isSelected, url ->
                     this@EditorActivity.currentView = currentView
+                    this@EditorActivity.viewData = url
                     currentY = currentView.y
+                    currentX = currentView.x
 //                    enableCornerListeners(currentView)
                     if (isSelected) {
                         if (stub.isInflated) {
@@ -1960,7 +2203,8 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
     }
 
     /*    private fun enableCornerListeners(draggableView: View) = binding.apply {
-            *//* bottomRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_RIGHT)
+            */
+    /* bottomRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_RIGHT)
          topRightCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.TOP_RIGHT)
          topLeftCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.TOP_LEFT)
          bottomLeftCornerIcon.attachTo(draggableTextView, CornerIconListener.Corner.BOTTOM_LEFT)*//*
@@ -1996,19 +2240,26 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             minHeight = 100,
             maxWidth = 600,
             maxHeight = 600
-        )*//*
+        )*/
+    /*
     }*/
 
     private fun alignLayoutLogic() = alignLayoutView?.apply {
         if (currentView is TextView) {
             alignLeft.setOnClickListener {
                 (currentView as TextView).gravity = Gravity.CENTER or Gravity.START
+                this@EditorActivity.alignment = "left"
+                updateView()
             }
             alignCenter.setOnClickListener {
                 (currentView as TextView).gravity = Gravity.CENTER
+                this@EditorActivity.alignment = "center"
+                updateView()
             }
             alignRight.setOnClickListener {
                 (currentView as TextView).gravity = Gravity.CENTER or Gravity.END
+                this@EditorActivity.alignment = "right"
+                updateView()
             }
         }
     }
@@ -2018,99 +2269,64 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
         var yDirection = 200f
 
         actionDown.setOnClickListener {
-            /*   draggableTextView?.hideIcons(
-                   topLeftCornerIcon,
-                   topRightCornerIcon,
-                   bottomRightCornerIcon,
-                   bottomLeftCornerIcon,
-               )*/
-
             currentView?.y = currentView?.y!! + 10
-
+            currentY = currentView?.y
+            updateView()
         }
         actionUp.setOnClickListener {
-            /* draggableTextView?.hideIcons(
-                 topLeftCornerIcon,
-                 topRightCornerIcon,
-                 bottomRightCornerIcon,
-                 bottomLeftCornerIcon,
-             )*/
-
             currentView?.y = currentView?.y!! - 10
+            currentY = currentView?.y
+            updateView()
 
         }
         actionLeft.setOnClickListener {
-            /* draggableTextView?.hideIcons(
-                 topLeftCornerIcon,
-                 topRightCornerIcon,
-                 bottomRightCornerIcon,
-                 bottomLeftCornerIcon,
-             )*/
             currentView?.x = currentView?.x!! - 10
-
+            currentX = currentView?.x
+            updateView()
         }
         actionRight.setOnClickListener {
-            /*  draggableTextView?.hideIcons(
-                  topLeftCornerIcon,
-                  topRightCornerIcon,
-                  bottomRightCornerIcon,
-                  bottomLeftCornerIcon,
-              )*/
             currentView?.x = currentView?.x!! + 10
-
+            currentX = currentView?.x
+            updateView()
         }
 
         actionFlipHorizontally.setOnClickListener {
-            /* draggableTextView?.hideIcons(
-                 topLeftCornerIcon,
-                 topRightCornerIcon,
-                 bottomRightCornerIcon,
-                 bottomLeftCornerIcon,
-             )*/
+
 
             val currentRotationY = currentView?.rotationY ?: 0f
 
             val newRotationY = if (currentRotationY == 0f) 180f else 0f
             currentView?.rotationY = newRotationY
+            rotationY = currentView?.rotationY.toString()
+            updateView()
         }
         actionFlipVertically.setOnClickListener {
-            /*   draggableTextView?.hideIcons(
-                   topLeftCornerIcon,
-                   topRightCornerIcon,
-                   bottomRightCornerIcon,
-                   bottomLeftCornerIcon,
-               )*/
             val currentRotationX = currentView?.rotationX ?: 0f
 
             val newRotationX = if (currentRotationX == 0f) 180f else 0f
             currentView?.rotationX = newRotationX
+            rotationX = currentView?.rotationX.toString()
+            updateView()
+
         }
 
         actionDelete.setOnClickListener {
-            /*  draggableTextView?.hideIcons(
-                  topLeftCornerIcon,
-                  topRightCornerIcon,
-                  bottomRightCornerIcon,
-                  bottomLeftCornerIcon,
-              )*/
-            currentView?.gone()
+            editorContainer.removeView(currentView)
+//            currentView?.let { (parent as ViewGroup).removeView(it) }
+
+
+//            currentView?.gone()
             if (binding.stub.isInflated) {
                 binding.stub.root.gone()
                 binding.stubAlign.root.gone()
             }
-//                            stub.viewStub?.visibility = View.GONE
+
             mainOptionsRecyclerView.visibility = View.VISIBLE
             selectedOptionsRecyclerView.visibility = View.GONE
         }
         actionCopy.setOnClickListener {
             xDirection += 20
             yDirection += 20
-            /*  draggableTextView?.hideIcons(
-                  topLeftCornerIcon,
-                  topRightCornerIcon,
-                  bottomRightCornerIcon,
-                  bottomLeftCornerIcon,
-              )*/
 
             if (currentView is TextView) {
                 val data = (currentView as TextView).text.toString()
@@ -2123,20 +2339,83 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
                     fontSize = "56",
                     viewId = randomViewId,
                 )
+                updateView()
             }
         }
         actionEdit.setOnClickListener {
-            /*  draggableTextView?.hideIcons(
-                  topLeftCornerIcon,
-                  topRightCornerIcon,
-                  bottomRightCornerIcon,
-                  bottomLeftCornerIcon,
-              )*/
+
             val currentText = (currentView as TextView).text.toString()
             val editBottomSheet = EditTextBottomSheet(currentText) { newText ->
                 (currentView as TextView).text = newText
+                viewData = newText
+                updateView()
             }
             editBottomSheet.show(supportFragmentManager, "EditTextDialogFragment")
+        }
+    }
+
+    private fun controlLayoutLogicImage() = controlLayoutViewImage?.apply {
+
+        actionDown.setOnClickListener {
+            currentView?.y = currentView?.y!! + 10
+            currentY = currentView?.y
+            updateView()
+        }
+        actionUp.setOnClickListener {
+            currentView?.y = currentView?.y!! - 10
+            currentY = currentView?.y
+            updateView()
+
+        }
+        actionLeft.setOnClickListener {
+            currentView?.x = currentView?.x!! - 10
+            currentX = currentView?.x
+            updateView()
+        }
+        actionRight.setOnClickListener {
+            currentView?.x = currentView?.x!! + 10
+            currentX = currentView?.x
+            updateView()
+        }
+
+        actionFlipHorizontally.setOnClickListener {
+            val currentRotationY = currentView?.rotationY ?: 0f
+            val newRotationY = if (currentRotationY == 0f) 180f else 0f
+            currentView?.rotationY = newRotationY
+        }
+        actionFlipVertically.setOnClickListener {
+            val currentRotationX = currentView?.rotationX ?: 0f
+            val newRotationX = if (currentRotationX == 0f) 180f else 0f
+            currentView?.rotationX = newRotationX
+        }
+
+        actionDelete.setOnClickListener {
+            editorContainer.removeView(currentView)
+            if (binding.stubControlImage.isInflated) {
+                binding.stubControlImage.root.gone()
+            }
+
+            mainOptionsRecyclerView.visibility = View.VISIBLE
+            recyclerViewItemsImage?.visibility = View.GONE
+        }
+        actionCopy.setOnClickListener {
+            var xDirection = currentView?.x!!
+            var yDirection = currentView?.y!!
+
+            xDirection += 10
+            yDirection += 10
+
+            val randomViewId = (10..30).random()
+            if (currentView is ImageView) {
+                makingViewsDraggable(
+                    "image",
+                    x = xDirection,
+                    y = yDirection,
+                    data = viewData!!,
+                    priority = 6,
+                    viewId = randomViewId,
+                )
+            }
         }
     }
 
@@ -2189,7 +2468,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             hideAllStubs(0)
             if (allParent != null) {
                 draggableTextView?.resetBackgroundForAllViews(allParent)
-                draggableImageView.resetBackgroundForAllViews(allParent)
+//                draggableImageView.resetBackgroundForAllViews(allParent)
             }
             recyclerViewSelectedOptionsImage.gone()
             isRecyclerViewVisible = false
@@ -2214,26 +2493,12 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
             viewToUndo?.let {
                 viewModel.undoToInitialPosition(it)
             }
-            /*  draggableTextView?.hideIcons(
-                  topLeftCornerIcon,
-                  topRightCornerIcon,
-                  bottomRightCornerIcon,
-                  bottomLeftCornerIcon,
-              )*/
-
         }
         btnRedo.setOnClickListener {
             val viewToRedo = viewModel.popLastRedo()
             viewToRedo?.let {
                 viewModel.redoToInitialPosition(it)
             }
-            /*    draggableTextView?.hideIcons(
-                    topLeftCornerIcon,
-                    topRightCornerIcon,
-                    bottomRightCornerIcon,
-                    bottomLeftCornerIcon,
-                )*/
-
         }
         btnRefresh.setOnClickListener {
             viewModel.resetAllViewsToInitialPosition(viewModel.dynamicViewsList)
@@ -2261,6 +2526,7 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
     override fun onDrag(view: View) {
         viewModel.addChangeToOrder(view)
+        updateView()
     }
 
     /* override fun onGettingAllTheValues(
@@ -2326,14 +2592,14 @@ class EditorActivity : AppCompatActivity(), ItemTouchHelperAdapter, UpdateTouchL
 
             }
 
-            override fun onSaveDraftClicked() {
-                log(tag, "Save")
-                val cvonvert = AllViews(
+            /*  override fun onSaveDraftClicked() {
+                  log(tag, "Save")
+                  val cvonvert = AllViews(
 
-                )
+                  )
 
 
-            }
+              }*/
 
         })
         exitConfirmationDialog.show(supportFragmentManager, "ExitConfirmationDialog")

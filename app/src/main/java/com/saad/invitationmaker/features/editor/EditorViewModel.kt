@@ -1,5 +1,8 @@
 package com.saad.invitationmaker.features.editor
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saad.invitationmaker.core.network.models.Hit
 import com.saad.invitationmaker.core.repo.Repo
+import com.saad.invitationmaker.features.editor.bottomSheets.fragment.TempModel
 import com.saad.invitationmaker.features.editor.models.CategoryModelSticker
 import com.saad.invitationmaker.features.home.models.LocalCardDetailsModel
 import com.sofit.app.utils.SingleLiveEvent
@@ -14,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.util.Stack
 import javax.inject.Inject
 
@@ -52,6 +57,36 @@ class EditorViewModel @Inject constructor(private val repo: Repo) : ViewModel() 
                 _AllBackgrounds.postValue(all[0].hit)
             }
         }
+    }
+
+    suspend fun saveTempSticker(stickerUrl: String) {
+
+        val bitmap = repo.downloadBitmap(stickerUrl)
+//        val bitmapString = bitmap?.let { bitmapToString(it) }
+        val customModel = bitmap?.let { TempModel(0, it) }
+        repo.saveTempStickerToDB(customModel!!)
+    }
+
+    suspend fun getTempSticker(): Bitmap {
+        val data = repo.getTempStickerFromRoom()
+//        val bitmap = stringToBitmap(data.stickerUrl)
+        return data.stickerUrl
+    }
+
+    fun stringToBitmap(encodedString: String): Bitmap? {
+        val decodedBytes = Base64.decode(encodedString, Base64.DEFAULT)
+        return if (decodedBytes.isNotEmpty()) {
+            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        } else {
+            null
+        }
+    }
+
+    private fun bitmapToString(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
     private fun getAllStickers() {

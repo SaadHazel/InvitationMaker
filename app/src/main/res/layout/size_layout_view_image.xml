@@ -10,10 +10,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:layout_marginStart="6dp"
-        android:value="40"
-        android:valueFrom="20"
-        android:valueTo="60"
-        android:stepSize="5.0"
+        android:value="200"
+        android:valueFrom="100"
+        android:valueTo="500"
+        android:stepSize="50.0"
         app:labelBehavior="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -23,5 +23,4 @@
         app:trackColorActive="@color/random"
         android:layout_marginEnd="4dp"
         app:trackHeight="2dp" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

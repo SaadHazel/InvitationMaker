@@ -72,27 +72,27 @@
             android:textStyle="bold"
             app:backgroundTint="@color/colorAccent"
             style="@style/TextAppearance.Material3.HeadlineMedium" />
+        <!--
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_1sdp"
+                    android:layout_margin="@dimen/_1sdp"
+                    android:background="@color/light_grey" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_1sdp"
-            android:layout_margin="@dimen/_1sdp"
-            android:background="@color/light_grey" />
-
-        <Button
-            android:id="@+id/btn_savedrafts"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_32sdp"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:background="@android:color/transparent"
-            android:padding="@dimen/_1sdp"
-            android:text="Save Draft"
-            android:textAllCaps="false"
-            android:textColor="@color/colorpink"
-            android:textSize="@dimen/_14sdp"
-            android:textStyle="bold"
-            style="@style/TextAppearance.Material3.HeadlineLarge" />
+                <Button
+                    android:id="@+id/btn_savedrafts"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_32sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/_8sdp"
+                    android:background="@android:color/transparent"
+                    android:padding="@dimen/_1sdp"
+                    android:text="Save Draft"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorpink"
+                    android:textSize="@dimen/_14sdp"
+                    android:textStyle="bold"
+                    style="@style/TextAppearance.Material3.HeadlineLarge" />-->
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
 

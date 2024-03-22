@@ -91,6 +91,7 @@
             android:paddingVertical="8dp"
             android:layout_marginEnd="8dp"
             android:text="Save"
+            android:fontFamily="@font/anthony_hunter"
             android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="@+id/btn_redo"
             app:layout_constraintEnd_toEndOf="parent"
@@ -116,14 +117,12 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/editor_layout"
-            android:layout_width="match_parent"
-            android:layout_height="550dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="0dp"
+            android:layout_height="530dp"
+            android:layout_marginHorizontal="10dp"
             android:layout_marginBottom="10dp"
             android:contentDescription="@string/backgrounds"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.842"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/guideline2">
 
@@ -222,19 +221,57 @@
             android:layout="@layout/control_layout_view_image"
             app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ViewStub
+            android:id="@+id/stub_size_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/size_layout_view_image"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ViewStub
+            android:id="@+id/stub_color_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/color_layout_view_image"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ViewStub
+            android:id="@+id/stub_opacity_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/opacity_layout_view_image"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ViewStub
+            android:id="@+id/stub_rotate_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/subTree"
+            android:layout="@layout/rotate_layout_view_image"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_selected_options_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_background"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_marginBottom="28dp"
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
+            app:layout_constraintBottom_toTopOf="@+id/horizontal_recyclerView_main_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub"
@@ -244,8 +281,7 @@
             android:layout="@layout/controls_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_align"
@@ -255,8 +291,7 @@
             android:layout="@layout/align_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_d_rotate"
@@ -266,8 +301,7 @@
             android:layout="@layout/d_rotate_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_rotate"
@@ -277,8 +311,7 @@
             android:layout="@layout/rotate_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_spacer"
@@ -288,8 +321,7 @@
             android:layout="@layout/spacer_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_opacity"
@@ -299,8 +331,7 @@
             android:layout="@layout/opacity_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_style"
@@ -310,8 +341,7 @@
             android:layout="@layout/style_layout_item"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_size"
@@ -321,8 +351,7 @@
             android:layout="@layout/size_layout_item"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_font"
@@ -332,8 +361,7 @@
             android:layout="@layout/fonts_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_color"
@@ -343,8 +371,7 @@
             android:layout="@layout/color_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/recyclerView_selected_options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_shadow_single_slider"
@@ -354,8 +381,7 @@
             android:layout="@layout/shadow_single_slider_view"
             app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_shadow_angle"
@@ -365,8 +391,7 @@
             android:layout="@layout/shadow_angle_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_color_shadow"
@@ -376,8 +401,7 @@
             android:layout="@layout/shadow_color_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewStub
             android:id="@+id/stub_opacity_shadow"
@@ -387,8 +411,7 @@
             android:layout="@layout/shadow_opacity_layout_view"
             app:layout_constraintBottom_toTopOf="@+id/shadow_recycler_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editor_layout" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/shadow_recycler_view"

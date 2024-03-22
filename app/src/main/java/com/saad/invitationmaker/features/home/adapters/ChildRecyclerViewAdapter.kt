@@ -18,7 +18,10 @@ class ChildRecyclerViewAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(data: AllCardsDesigns, onItemClick: SingleDesignCallBack) {
+//            val bitmap = stringToBitmap(data.thumbnail)
             binding.singleCardImg.loadFromUrl(data.thumbnail)
+
+//           setImageBitmap(bitmap)
             itemView.setOnClickListener {
                 onItemClick.onDesignClick(docId = data.docId, category = data.category)
             }
@@ -40,5 +43,14 @@ class ChildRecyclerViewAdapter(
     }
 
     override fun getItemCount(): Int = dataList.size
+
+    /* fun stringToBitmap(encodedString: String): Bitmap? {
+         val decodedBytes = Base64.decode(encodedString, Base64.DEFAULT)
+         return if (decodedBytes.isNotEmpty()) {
+             BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+         } else {
+             null
+         }
+     }*/
 }
 

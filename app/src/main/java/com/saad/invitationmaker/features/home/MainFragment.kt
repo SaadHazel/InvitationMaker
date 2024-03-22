@@ -57,16 +57,18 @@ class MainFragment : Fragment() {
             viewPager.adapter = viewPagerAdapter
         }
 
-        for (tabData in tabDataList) {
-            val customTab = LayoutInflater.from(requireContext())
-                .inflate(R.layout.custom_tab_item_main, null) as ConstraintLayout
-            customTab.setBackgroundResource(tabData.drawableRes)
-            val tabTextView = customTab.findViewById<TextView>(R.id.text2)
-            tabTextView.text = tabData.text
+        /*       for (tabData in tabDataList) {
+                   val customTab = LayoutInflater.from(requireContext())
+                       .inflate(R.layout.custom_tab_item_main, null) as ConstraintLayout
+                   customTab.setBackgroundResource(tabData.drawableRes)
+                   val tabTextView = customTab.findViewById<TextView>(R.id.text2)
+                   tabTextView.text = tabData.text
 
-            tabLayout.addTab(tabLayout.newTab().setCustomView(customTab))
-        }
+                   tabLayout.addTab(tabLayout.newTab().setCustomView(customTab))
+               }*/
 
+        tabLayout.addTab(tabLayout.newTab().setText(tabDataList[0].text))
+        tabLayout.addTab(tabLayout.newTab().setText(tabDataList[1].text))
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (tab != null) {

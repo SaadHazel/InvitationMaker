@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -55,18 +56,23 @@ class BackgroundFragment : Fragment() {
             log("BackgroundViewModel", "In fragment ${all[1].category}")
             mainRecyclerView(all)
         }
-
+        binding?.cameraTv?.setTypeface(
+            ResourcesCompat.getFont(
+                requireContext(),
+                R.font.anthony_hunter
+            )
+        )
         getBackground()
 
     }
 
     private fun getBackground() = binding?.apply {
-        cameraBtn.setOnClickListener {
-            // Launch the camera intent
-            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE)
+        /*    cameraBtn.setOnClickListener {
+                // Launch the camera intent
+                val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE)
 
-        }
+            }*/
 
         galleryBtn.setOnClickListener {
             openGallery()
@@ -93,7 +99,7 @@ class BackgroundFragment : Fragment() {
         })
     }
 
-
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 

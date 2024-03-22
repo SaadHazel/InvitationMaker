@@ -1,5 +1,6 @@
 package com.saad.invitationmaker.features.editor.touchListners
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -15,8 +16,12 @@ import androidx.core.view.setPadding
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.utils.log
 import com.saad.invitationmaker.features.editor.callbacks.UpdateTouchListenerCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
+@SuppressLint("ViewConstructor")
 class DraggableTextView(
     context: Context,
     x: Float,
@@ -48,11 +53,13 @@ class DraggableTextView(
     val opacity: String?,
     val currentPosition: (x: Float, y: Float) -> Unit,
     private val onItemClick: (Boolean) -> Unit,
-    val currentView: (viewId: String, view: View, isSelected: Boolean) -> Unit,
+    val currentView: (viewId: String, view: View, isSelected: Boolean, viewData: String) -> Unit,
     private val callback: UpdateTouchListenerCallback,
 
     ) :
     AppCompatTextView(context) {
+    val viewData: String = text
+
     init {
 //        Utils.log("Draggable Text view: $text")
         // Set TextView properties
@@ -79,26 +86,52 @@ class DraggableTextView(
 
         when (font) {
             "poppins" -> {
-                this.setTypeface(ResourcesCompat.getFont(context, R.font.poppins_regular))
+                CoroutineScope(Dispatchers.IO).launch {
+                    this@DraggableTextView.typeface = ResourcesCompat.getFont(
+                        context,
+                        R.font.poppins_regular
+                    )
+                }
+
             }
 
             "cormorantSC" -> {
-                this.setTypeface(ResourcesCompat.getFont(context, R.font.cormorantsc_regular))
+                CoroutineScope(Dispatchers.IO).launch {
+                    this@DraggableTextView.typeface = ResourcesCompat.getFont(
+                        context,
+                        R.font.cormorantsc_regular
+                    )
+                }
             }
 
             "raleway" -> {
-                this.setTypeface(ResourcesCompat.getFont(context, R.font.raleway_regular))
+                CoroutineScope(Dispatchers.IO).launch {
+                    this@DraggableTextView.typeface = ResourcesCompat.getFont(
+                        context,
+                        R.font.raleway_regular
+                    )
+                }
             }
 
             "anthonyHunter" -> {
-                setTextColor(Color.parseColor("#29637B"))
-                this.setTypeface(ResourcesCompat.getFont(context, R.font.anthony_hunter))
+                log("Draggable Text view:", text)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val typeface = ResourcesCompat.getFont(context, R.font.anthony_hunter)
+                    this@DraggableTextView.typeface = typeface
+                }
+
             }
 
             "greatVibes" -> {
-                this.setTypeface(ResourcesCompat.getFont(context, R.font.greatvibes_regular))
+                CoroutineScope(Dispatchers.IO).launch {
+                    this@DraggableTextView.typeface = ResourcesCompat.getFont(
+                        context,
+                        R.font.greatvibes_regular
+                    )
+                }
             }
         }
+
         this.x = x
         this.y = y
         this.text = text
@@ -135,7 +168,7 @@ class DraggableTextView(
                         onItemClick(true)
                         resetBackgroundForAllViews(allParent)
                         setBackgroundResource(R.drawable.rounded_border_tv)
-                        currentView(viewId.toString(), view, true)
+                        currentView(viewId.toString(), view, true, viewData)
                         lastX = event.rawX
                         lastY = event.rawY
                         /*    callback.onGettingAllTheValues(

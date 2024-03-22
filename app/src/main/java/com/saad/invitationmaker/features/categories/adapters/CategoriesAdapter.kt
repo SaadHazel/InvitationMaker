@@ -17,88 +17,9 @@ class CategoriesAdapter(
     FragmentStateAdapter(activity) {
 
     override fun getItemCount(): Int {
-        return dataList?.size ?: homeDataList!!.size
-
+        return (dataList?.size ?: homeDataList?.size)!!
     }
 
-    /*   override fun createFragment(position: Int): Fragment {
-
-           return when (position) {
-               0 -> {
-                   if (dataList == null) {
-                       Log.d("ShowCategoryList", "list: ${homeDataList?.get(0)?.allDesigns}")
-
-                       ShowCategoriesFragment(
-                           homeDataList = homeDataList?.get(0)?.allDesigns,
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   } else {
-                       Log.d("ShowCategoryList", "dataList[0]: ${dataList[0]}")
-
-                       ShowCategoriesFragment(
-                           category = dataList[0],
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   }
-               }
-
-               1 -> {
-                   if (dataList == null) {
-                       ShowCategoriesFragment(
-                           homeDataList = homeDataList?.get(1)?.allDesigns,
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   } else {
-                       ShowCategoriesFragment(
-                           category = dataList[1],
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   }
-               }
-
-               3 -> {
-                   if (dataList == null) {
-                       ShowCategoriesFragment(
-                           homeDataList = homeDataList?.get(2)?.allDesigns,
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   } else {
-                       ShowCategoriesFragment(
-                           category = dataList[2],
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   }
-               }
-
-               4 -> {
-                   if (dataList == null) {
-                       ShowCategoriesFragment(
-                           homeDataList = homeDataList?.get(0)?.allDesigns,
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   } else {
-                       ShowCategoriesFragment(
-                           category = dataList[3],
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   }
-               }
-
-               else -> {
-                   if (dataList == null) {
-                       ShowCategoriesFragment(
-                           homeDataList = homeDataList?.get(1)?.allDesigns,
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   } else {
-                       ShowCategoriesFragment(
-                           category = dataList[3],
-                           parentLifeCycleOwner = lifecycleOwner
-                       )
-                   }
-               }
-           }
-       }*/
     override fun createFragment(position: Int): Fragment {
         val categoryIndex = position % maxOf(dataList?.size ?: 0, homeDataList?.size ?: 0)
 

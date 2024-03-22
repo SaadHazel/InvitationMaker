@@ -1,17 +1,16 @@
 package com.saad.invitationmaker.features.editor.adapters
 
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saad.invitationmaker.R
-
 import com.saad.invitationmaker.databinding.ColorLayoutSingleViewBinding
 import com.saad.invitationmaker.features.editor.callbacks.ItemColorCallBack
 
 class ColorsAdapter(
-    private val list: List<Int>,
+    private val list: List<String>,
     private val itemClickListener: ItemColorCallBack,
 ) :
     RecyclerView.Adapter<ColorsAdapter.ColorsViewHolder>() {
@@ -32,11 +31,11 @@ class ColorsAdapter(
 
     inner class ColorsViewHolder(private val binding: ColorLayoutSingleViewBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(color: Int, itemClickListener: ItemColorCallBack) {
+        fun bind(color: String, itemClickListener: ItemColorCallBack) {
             val roundedDrawable = GradientDrawable()
             roundedDrawable.shape = GradientDrawable.RECTANGLE
             roundedDrawable.cornerRadius = 30f
-            roundedDrawable.setColor(ContextCompat.getColor(itemView.context, color))
+            roundedDrawable.setColor(Color.parseColor(color))
 
             if (position == 0) {
                 itemView.setBackgroundResource(R.drawable.color_picker_icon)
@@ -55,4 +54,10 @@ class ColorsAdapter(
             }
         }
     }
+
+    override fun getItemViewType(position: Int): Int {
+        // Return a unique view type for each position
+        return position
+    }
+
 }

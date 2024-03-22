@@ -14,6 +14,7 @@ class CategoryShowAdapter(
     private var homeDataList: List<AllCardsDesigns>? = null,
     private val onItemClick: (String, String?) -> Unit,
 ) : RecyclerView.Adapter<CategoryShowAdapter.ImageViewHolder>() {
+    
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ItemImageBinding.inflate(inflater, parent, false)
@@ -32,7 +33,6 @@ class CategoryShowAdapter(
                 holder.bind(homeData = document)
             }
         }
-
     }
 
     override fun getItemCount(): Int {
@@ -70,8 +70,8 @@ class CategoryShowAdapter(
                         .into(binding.imageView1)
                 }
             }
-
         }
     }
+
 
 }

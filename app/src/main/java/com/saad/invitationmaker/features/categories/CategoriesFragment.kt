@@ -197,7 +197,7 @@ class CategoriesFragment : Fragment() {
                 tabLayout.selectTab(tabLayout.getTabAt(position))
             }
         })
-
+   
         updateTabAppearance(tabLayout.getTabAt(position!!), true)
     }
 

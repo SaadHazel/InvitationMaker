@@ -38,8 +38,7 @@ class FontsAdapter(
             binding.textWithFont.typeface = typeface
             binding.textWithFont.text = fonts.text
             itemView.setOnClickListener {
-
-                itemClickListener.itemClick(fonts.fonts)
+                itemClickListener.itemClick(fonts.fonts, fonts.text)
             }
 
         }

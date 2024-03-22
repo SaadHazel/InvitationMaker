@@ -13,11 +13,11 @@ import android.widget.ImageView
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.snackbar.Snackbar
 import com.saad.invitationmaker.R
 import com.saad.invitationmaker.app.utils.constants.Constants
-
+  
 fun View.gone() {
     this.visibility = View.GONE
 }
@@ -72,7 +72,8 @@ fun ViewGroup.inflate(@LayoutRes layoutRes: Int): View =
 fun ImageView.loadFromUrl(url: String) =
     Glide.with(this.context.applicationContext)
         .load(url)
-        .transition(DrawableTransitionOptions.withCrossFade())
+        .diskCacheStrategy(DiskCacheStrategy.DATA)
+//        .transition(DrawableTransitionOptions.withCrossFade())
         .into(this)
 
 

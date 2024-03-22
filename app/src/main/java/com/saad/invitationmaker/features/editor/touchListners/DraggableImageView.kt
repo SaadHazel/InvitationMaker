@@ -18,10 +18,10 @@ class DraggableImageView(
     y: Float,
     imageType: String,
     bitmap: Bitmap?,
-    url: String,
+    val url: String,
     private val onItemClick: (Boolean) -> Unit,
     private val callback: UpdateTouchListenerCallback,
-    val currentView: (view: View, isSelected: Boolean) -> Unit,
+    val currentView: (view: View, isSelected: Boolean, data: String) -> Unit,
 ) :
     AppCompatImageView(context) {
 
@@ -62,7 +62,7 @@ class DraggableImageView(
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         onItemClick(true)
-                        currentView(view, true)
+                        currentView(view, true, url)
                         resetBackgroundForAllViews(allParent)
                         setBackgroundResource(R.drawable.rounded_border_tv)
                         lastX = event.rawX

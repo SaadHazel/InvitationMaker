@@ -2,8 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
-    id("androidx.navigation.safeargs.kotlin")
     id("com.google.devtools.ksp")
+    id("androidx.navigation.safeargs.kotlin")
     id("com.google.gms.google-services")
     id("kotlin-parcelize")
 }
@@ -52,17 +52,28 @@ android {
         dataBinding = true
         buildConfig = true
     }
+    packagingOptions {
+        resources {
+            exclude("/lib")
+            exclude("/lib/x86")
+            exclude("/lib/x86_64")
+            exclude("/lib/arm64-v8a")
+            exclude("/lib/armeabi-v7a")
+        }
+    }
 }
+
 
 dependencies {
 
     //Room
     implementation("androidx.room:room-runtime:2.6.1")
-    implementation("com.google.firebase:firebase-firestore:24.10.2")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
+    //firestore
+    implementation("com.google.firebase:firebase-firestore:24.10.3")
     //Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
@@ -75,16 +86,21 @@ dependencies {
     ksp("com.google.dagger:dagger-compiler:2.50") // Dagger compiler
     ksp("com.google.dagger:hilt-compiler:2.50")   // Hilt compiler
 
-
     //bg remover
 //    implementation("com.github.GhayasAhmad:auto-background-remover:1.0.3")
-    implementation("com.github.erenalpaslan:removebg:1.0.4")
+
+    //current
+    /*    implementation("com.github.erenalpaslan:removebg:1.0.4")*/
 
     //Color Picker
     implementation("com.github.skydoves:colorpickerview:2.3.0")
 
     //Coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    /*    //Cold Storage
+        implementation("com.github.crypticminds.ColdStorage:coldstoragecache:4.1.1")
+        implementation("com.github.crypticminds.ColdStorage:coldstorageannotation:4.1.1")*/
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
